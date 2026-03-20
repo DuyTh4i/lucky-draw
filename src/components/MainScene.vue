@@ -430,6 +430,8 @@
 
     if (isSpinningPack) {
       isSpinningPack = false
+      isDragging = false
+      hasDragged = false
       document.body.style.cursor = 'default'
       snapPackToFace()
       return
@@ -517,6 +519,8 @@
 
     if (isSpinningPack) {
       isSpinningPack = false
+      isDragging = false
+      hasDragged = false
       snapPackToFace()
       return
     }
