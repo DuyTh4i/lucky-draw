@@ -27,21 +27,21 @@
 
   // ─── Config (GUI-controlled) ───────────────────────────────────────────────
   const config = {
-    packCount: 5,
+    packCount: 15,
     radius: 4,
-    packW: 1.4,
-    packH: 2,
-    packD: 0.06,
-    packY: 0.2,
+    packW: 1.2,
+    packH: 2.3,
+    packD: 0.015,
+    packY: 0.4,
     selectedLift: 0.1,
     bobAmplitude: 0.03,
     bobSpeed: 3,
     dragSensitivity: 0.006,
     // Camera
     camX: 0,
-    camY: 0,
+    camY: 0.3,
     camZ: 10,
-    lookY: 0.3,
+    lookY: 0,
   }
 
   // ─── State ──────────────────────────────────────────────────────────────────
@@ -74,40 +74,40 @@
   function createPackMesh (colorHex, index) {
     // --- Front canvas ---
     const fc = document.createElement('canvas')
-    fc.width = 256
-    fc.height = 384
+    fc.width = 128
+    fc.height = 192
     const ctx = fc.getContext('2d')
 
-    const grad = ctx.createLinearGradient(0, 0, 256, 384)
+    const grad = ctx.createLinearGradient(0, 0, 128, 192)
     grad.addColorStop(0, '#' + colorHex.toString(16).padStart(6, '0'))
     grad.addColorStop(1, '#1a0033')
     ctx.fillStyle = grad
-    ctx.fillRect(0, 0, 256, 384)
+    ctx.fillRect(0, 0, 128, 192)
 
     // Sheen overlay
-    const sheen = ctx.createLinearGradient(0, 0, 256, 0)
+    const sheen = ctx.createLinearGradient(0, 0, 128, 0)
     sheen.addColorStop(0, 'rgba(255,255,255,0.00)')
     sheen.addColorStop(0.4, 'rgba(255,255,255,0.18)')
     sheen.addColorStop(1, 'rgba(255,255,255,0.00)')
     ctx.fillStyle = sheen
-    ctx.fillRect(0, 0, 256, 384)
+    ctx.fillRect(0, 0, 128, 192)
 
     // --- Back canvas ---
     const bc = document.createElement('canvas')
-    bc.width = 256
-    bc.height = 384
+    bc.width = 128
+    bc.height = 192
     const bctx = bc.getContext('2d')
     bctx.fillStyle = '#0d0d2b'
-    bctx.fillRect(0, 0, 256, 384)
+    bctx.fillRect(0, 0, 128, 192)
 
-    const side = new THREE.MeshStandardMaterial({ color: 0x11_00_22, roughness: 0.9 })
+    const side = new THREE.MeshBasicdMaterial({ color: 0x11_00_22})
 
     return new THREE.Mesh(
       new THREE.BoxGeometry(config.packW, config.packH, config.packD),
       [
         side, side, side, side,
-        new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(fc), roughness: 0.3, metalness: 0.3 }),
-        new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(bc), roughness: 0.5 }),
+        new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(fc), roughness: 0.3}),
+        new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(bc), roughness: 0.3}),
       ],
     )
   }
@@ -169,10 +169,10 @@
   // ─── Auto-fit radius / pack size / camera when packCount changes ────────
   function autoFit () {
     const n = config.packCount
-    const gap = 0.6 // minimum gap between packs
+    const gap = 0.17 // minimum gap between packs
     // Scale pack width down for many packs
-    config.packW = Math.max(0.6, 1.4 - (n - 5) * 0.06)
-    config.packH = Math.max(0.9, 2 - (n - 5) * 0.08)
+    config.packW = Math.max(0.9, 1.6 - (n - 5) * 0.03)
+    config.packH = Math.max(1.2, 2.3 - (n - 5) * 0.05)
     // Radius so adjacent packs don't overlap: chord >= packW + gap
     config.radius = Math.max(2.5, (config.packW + gap) / (2 * Math.sin(Math.PI / n)))
     rebuildCarousel()
@@ -194,10 +194,10 @@
   // ─── Floor & Lights ───────────────────────────────────────────────────────
   function buildFloor () {
     // Mirror reflector – larger, softer
-    const reflector = new Reflector(new THREE.PlaneGeometry(15, 15), {
+    const reflector = new Reflector(new THREE.PlaneGeometry(20, 20), {
       clipBias: 0.003,
-      textureWidth: window.innerWidth * window.devicePixelRatio * 0.35,
-      textureHeight: window.innerHeight * window.devicePixelRatio * 0.35,
+      textureWidth: window.innerWidth * window.devicePixelRatio * 0.2,
+      textureHeight: window.innerHeight * window.devicePixelRatio * 0.2,
       color: 0xff_ff_ff,
     })
     reflector.rotation.x = -Math.PI / 2
@@ -208,7 +208,7 @@
     fadeMat = new THREE.MeshBasicMaterial({
       color: settingsStore.sceneDarkMode ? 0x0a_0a_14 : 0xee_f2_ff, transparent: true, opacity: 0.72, depthWrite: false,
     })
-    const fade = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), fadeMat)
+    const fade = new THREE.Mesh(new THREE.PlaneGeometry(35, 35), fadeMat)
     fade.rotation.x = -Math.PI / 2
     fade.position.set(0, -config.packH / 2 + 0.01, 4)
     scene.add(fade)
@@ -217,7 +217,7 @@
     nearFadeMat = new THREE.MeshBasicMaterial({
       color: settingsStore.sceneDarkMode ? 0x0a_0a_14 : 0xee_f2_ff, transparent: true, opacity: 0.35, depthWrite: false,
     })
-    const nearFade = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), nearFadeMat)
+    const nearFade = new THREE.Mesh(new THREE.PlaneGeometry(35, 35), nearFadeMat)
     nearFade.rotation.x = -Math.PI / 2
     nearFade.position.set(0, -config.packH / 2 + 0.02, -6)
     scene.add(nearFade)
@@ -227,8 +227,8 @@
     scene.add(new THREE.AmbientLight(0xff_ff_ff, 0.7))
 
     const dir = new THREE.DirectionalLight(0xff_ff_ff, 0.8)
-    dir.position.set(5, 10, 5)
-    dir.castShadow = true
+    dir.position.set(0, 10, 0)
+    //dir.castShadow = true
     scene.add(dir)
 
     // Purple rim
@@ -581,7 +581,7 @@
 
   // ─── GUI (lil-gui) ────────────────────────────────────────────────────────
   function setupGUI () {
-    gui = new GUI({ title: '🎰 Lucky Draw Controls' })
+    gui = new GUI({ closeFolders: true })
 
     const carousel = gui.addFolder('Carousel')
     carousel.add(config, 'packCount', 2, 20, 1).name('Pack Count').onChange(autoFit)
