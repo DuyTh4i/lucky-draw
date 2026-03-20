@@ -3,7 +3,7 @@
     <!-- Minimal Toggle -->
     <button
       class="toggle-btn"
-      :class="{ light: !settings.darkMode }"
+      :class="{ light: settings.sceneDarkMode }"
       @click="toggleDrawer"
     >
       <svg
