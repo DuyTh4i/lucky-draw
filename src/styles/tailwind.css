@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+/* ═══ Custom theme tokens ═══ */
+@theme {
+  --color-bg: #111111;
+  --color-surface: #1a1a1a;
+  --color-border: #222222;
+  --color-crimson: #dc143c;
+  --color-crimson-dim: rgba(220, 20, 60, 0.12);
+  --color-text: #eeeeee;
+  --color-text-dim: #888888;
+  --color-text-muted: #555555;
+  --font-mono: 'Consolas', 'Courier New', monospace;
+}
