@@ -100,7 +100,7 @@
     bctx.fillStyle = '#0d0d2b'
     bctx.fillRect(0, 0, 128, 192)
 
-    const side = new THREE.MeshBasicdMaterial({ color: 0x11_00_22})
+    const side = new THREE.MeshBasicMaterial({ color: 0x11_00_22})
 
     return new THREE.Mesh(
       new THREE.BoxGeometry(config.packW, config.packH, config.packD),
