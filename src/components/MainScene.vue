@@ -36,12 +36,12 @@
     selectedLift: 0.1,
     bobAmplitude: 0.03,
     bobSpeed: 3,
-    dragSensitivity: 0.006,
+    dragSensitivity: 0.003,
     // Camera
     camX: 0,
-    camY: 0.3,
-    camZ: 10,
-    lookY: 0,
+    camY: 0.4,
+    camZ: 11,
+    lookY: -0.3,
   }
 
   // ─── State ──────────────────────────────────────────────────────────────────
@@ -600,10 +600,6 @@
     cam.add(config, 'camY', -10, 10, 0.05).name('Y').onChange(updateCamera)
     cam.add(config, 'camZ', -10, 20, 0.05).name('Z').onChange(updateCamera)
     cam.add(config, 'lookY', -5, 5, 0.1).name('Look Y').onChange(updateCamera)
-
-    const anim = gui.addFolder('Animation')
-    anim.add(config, 'bobAmplitude', 0, 0.5, 0.01).name('Bob Height')
-    anim.add(config, 'bobSpeed', 0.1, 5, 0.1).name('Bob Speed')
   }
 
   // ─── Lifecycle ────────────────────────────────────────────────────────────
