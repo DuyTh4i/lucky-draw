@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 export const useSettingsStore = defineStore('settings', {
   state: () => ({
     // Carousel
-    packCount: 5,
+    packCount: 15,
     radius: 4,
     dragSensitivity: 0.006,
 
@@ -36,6 +36,11 @@ export const useSettingsStore = defineStore('settings', {
       { name: 'Arceus Pack', color: '#ff8800', texture: null },
       { name: 'Giratina Pack', color: '#0088ff', texture: null },
       { name: 'Dialga Pack', color: '#aa44ff', texture: null },
+      { name: 'Ho-Oh Pack', color: '#ff3300', texture: null },
+      { name: 'Celebi Pack', color: '#33cc33', texture: null },
+      { name: 'Zapdos Pack', color: '#ffcc00', texture: null },
+      { name: 'Articuno Pack', color: '#00ccff', texture: null },
+      { name: 'Moltres Pack', color: '#ff6600', texture: null },
     ],
 
     // Prize tiers
