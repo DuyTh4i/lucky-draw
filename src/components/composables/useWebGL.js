@@ -74,7 +74,15 @@ export function useWebGL (ctx, settingsStore) {
     if (!ctx.camera) {
       return
     }
-    ctx.camera.position.set(ctx.config.camX, ctx.config.camY, ctx.config.camZ)
+
+    // Thay vì dựa vào chiều rộng cửa sổ có thể bị độ lệch do DevTools hoặc scrollbar,
+    // ta check tỷ lệ khung hình canvas: dọc (aspect < 1) => đích xác là hiển thị điện thoại
+    const isMobile = ctx.camera.aspect < 1
+    const mobileOffset = isMobile ? 2.5 : 0
+
+    console.log('Chế độ Mobile (aspect < 1):', isMobile, '| Base camZ:', ctx.config.camZ)
+
+    ctx.camera.position.set(ctx.config.camX, ctx.config.camY, ctx.config.camZ + mobileOffset)
     ctx.camera.lookAt(0, ctx.config.lookY, 0)
   }
 
@@ -88,8 +96,9 @@ export function useWebGL (ctx, settingsStore) {
     ctx.camera.updateProjectionMatrix()
     ctx.renderer.setSize(w, h, false)
 
-    // Đã bỏ chức năng tự động scale khoảng cách camera đi, giờ đây kích thước
-    // trên màn hình sẽ quyết định bởi cố định camZ và khoảng trống tự nhiên, không zoom out nữa.
+    if (ctx.updateCamera) {
+      ctx.updateCamera()
+    }
   }
 
   ctx.applyTheme = function () {
