@@ -15,7 +15,6 @@ export function useDebugGUI (ctx) {
     pack.add(ctx.config, 'packH', 1, 4, 0.1).name('Height').onChange(ctx.rebuildCarousel)
     pack.add(ctx.config, 'packD', 0.01, 0.3, 0.001).name('Depth').onChange(ctx.rebuildCarousel)
     pack.add(ctx.config, 'packY', -3, 3, 0.1).name('Elevation')
-    pack.add(ctx.config, 'selectedLift', 0, 2, 0.05).name('Selected Lift')
 
     const cam = ctx.gui.addFolder('Camera')
     cam.add(ctx.config, 'camX', -10, 10, 0.05).name('X').onChange(ctx.updateCamera)

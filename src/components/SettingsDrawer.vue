@@ -315,7 +315,7 @@
   flex-direction: column;
   overflow: hidden;
   border-right: 1px solid rgba(220, 20, 60, 0.2);
-  font-family: 'Consolas', 'Courier New', monospace;
+  font-family: 'Montserrat', monospace;
   font-size: 0.8rem;
 }
 

@@ -12,7 +12,6 @@ export const useSettingsStore = defineStore('settings', {
     packH: 2,
     packD: 0.06,
     packY: 0.2,
-    selectedLift: 0.1,
 
     // Animation
     bobAmplitude: 0.03,

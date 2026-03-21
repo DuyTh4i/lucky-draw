@@ -11,14 +11,13 @@ export function useMainSceneContext () {
     packH: 2.4, // 1.5 * 1.6
     packD: 0.015,
     packY: 0.1,
-    selectedLift: 0.1,
     bobAmplitude: 0.03,
     bobSpeed: 4,
-    dragSensitivity: 0.003,
+    dragSensitivity: 0.004,
     camX: 0,
     camY: 0.4,
     camZ: 8,
-    lookY: -0.3,
+    lookY: 0,
   }
 
   const ctx = {
