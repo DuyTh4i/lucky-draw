@@ -7,43 +7,48 @@ const ALL_COLORS = [
 ]
 
 export function useCarousel (ctx) {
+  const materialCache = {}
+  const sideMat = new THREE.MeshBasicMaterial({ color: 0x11_00_22 })
+
   // eslint-disable-next-line no-unused-vars
   function createPackMesh (colorHex, index) {
-    const fw = 128
-    const fh = Math.round(fw * 1.6) // ~205px
-    const fc = document.createElement('canvas')
-    fc.width = fw
-    fc.height = fh
-    const frontCtx = fc.getContext('2d')
-    const grad = frontCtx.createLinearGradient(0, 0, fw, fh)
-    grad.addColorStop(0, '#' + colorHex.toString(16).padStart(6, '0'))
-    grad.addColorStop(1, '#1a0033')
-    frontCtx.fillStyle = grad
-    frontCtx.fillRect(0, 0, fw, fh)
+    if (!materialCache[colorHex]) {
+      const fw = 128
+      const fh = Math.round(fw * 1.6) // ~205px
+      const fc = document.createElement('canvas')
+      fc.width = fw
+      fc.height = fh
+      const frontCtx = fc.getContext('2d')
+      const grad = frontCtx.createLinearGradient(0, 0, fw, fh)
+      grad.addColorStop(0, '#' + colorHex.toString(16).padStart(6, '0'))
+      grad.addColorStop(1, '#1a0033')
+      frontCtx.fillStyle = grad
+      frontCtx.fillRect(0, 0, fw, fh)
 
-    const sheen = frontCtx.createLinearGradient(0, 0, fw, 0)
-    sheen.addColorStop(0, 'rgba(255,255,255,0.00)')
-    sheen.addColorStop(0.4, 'rgba(255,255,255,0.18)')
-    sheen.addColorStop(1, 'rgba(255,255,255,0.00)')
-    frontCtx.fillStyle = sheen
-    frontCtx.fillRect(0, 0, fw, fh)
+      const sheen = frontCtx.createLinearGradient(0, 0, fw, 0)
+      sheen.addColorStop(0, 'rgba(255,255,255,0.00)')
+      sheen.addColorStop(0.4, 'rgba(255,255,255,0.18)')
+      sheen.addColorStop(1, 'rgba(255,255,255,0.00)')
+      frontCtx.fillStyle = sheen
+      frontCtx.fillRect(0, 0, fw, fh)
 
-    const bc = document.createElement('canvas')
-    bc.width = fw
-    bc.height = fh
-    const bctx = bc.getContext('2d')
-    bctx.fillStyle = '#0d0d2b'
-    bctx.fillRect(0, 0, fw, fh)
+      const bc = document.createElement('canvas')
+      bc.width = fw
+      bc.height = fh
+      const bctx = bc.getContext('2d')
+      bctx.fillStyle = '#0d0d2b'
+      bctx.fillRect(0, 0, fw, fh)
 
-    const side = new THREE.MeshBasicMaterial({ color: 0x11_00_22 })
+      materialCache[colorHex] = [
+        sideMat, sideMat, sideMat, sideMat,
+        new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(fc), roughness: 0.3 }),
+        new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(bc), roughness: 0.3 }),
+      ]
+    }
 
     return new THREE.Mesh(
       new THREE.BoxGeometry(ctx.config.packW, ctx.config.packH, ctx.config.packD),
-      [
-        side, side, side, side,
-        new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(fc), roughness: 0.3 }),
-        new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(bc), roughness: 0.3 }),
-      ],
+      materialCache[colorHex],
     )
   }
 
@@ -52,12 +57,9 @@ export function useCarousel (ctx) {
     for (const mesh of ctx.packMeshes) {
       if (ctx.interactionManager) ctx.interactionManager.remove(mesh)
       mesh.geometry.dispose()
-      if (Array.isArray(mesh.material)) {
-        for (const m of mesh.material) {
-          if (m.map) m.map.dispose()
-          m.dispose()
-        }
-      }
+
+      // Đã loại bỏ logic dispose material vì giờ ta đã lưu vào cache (chỉ khoảng chục cái tĩnh)
+      // Mọi lần kéo thanh UI thay đổi số lượng màn sẽ rốt ráo không tốn chu kỳ build texture Canvas.
     }
     ctx.scene.remove(ctx.carouselGroup)
     ctx.carouselGroup = null
@@ -78,7 +80,8 @@ export function useCarousel (ctx) {
       mesh.rotation.y = angle
       mesh.userData.packIndex = i
       mesh.userData.baseAngle = angle
-      mesh.castShadow = true
+      // Bỏ bóng vì đã tắt ShadowMap trong useWebGL để tránh hao tài nguyên vô ích
+      mesh.castShadow = false
 
       ctx.packMeshes.push(mesh)
       ctx.carouselGroup.add(mesh)

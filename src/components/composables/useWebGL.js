@@ -9,10 +9,13 @@ export function useWebGL (ctx, settingsStore) {
     const h = canvas.clientHeight
 
     ctx.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
-    ctx.renderer.setPixelRatio(window.devicePixelRatio)
+    // Giới hạn pixelRatio ở mức 2 (Màn hình 3x 4x sẽ không phải vẽ quá nhiều ngốn GPU)
+    ctx.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     ctx.renderer.setSize(w, h, false)
-    ctx.renderer.shadowMap.enabled = true
-    ctx.renderer.shadowMap.type = THREE.PCFSoftShadowMap
+
+    // Tắt hoàn toàn bộ tính bóng đổ vì project hiện tại không có nguồn sáng nào (light) castShadow
+    // Việc để enabled = true mà không gian không có bóng sẽ lãng phí chu kỳ tính toán của GPU
+    ctx.renderer.shadowMap.enabled = false
 
     ctx.scene = new THREE.Scene()
     const bgColor = settingsStore.sceneDarkMode ? 0x0a_0a_14 : 0xee_f2_ff
@@ -79,8 +82,6 @@ export function useWebGL (ctx, settingsStore) {
     // ta check tỷ lệ khung hình canvas: dọc (aspect < 1) => đích xác là hiển thị điện thoại
     const isMobile = ctx.camera.aspect < 1
     const mobileOffset = isMobile ? 2.5 : 0
-
-    console.log('Chế độ Mobile (aspect < 1):', isMobile, '| Base camZ:', ctx.config.camZ)
 
     ctx.camera.position.set(ctx.config.camX, ctx.config.camY, ctx.config.camZ + mobileOffset)
     ctx.camera.lookAt(0, ctx.config.lookY, 0)
