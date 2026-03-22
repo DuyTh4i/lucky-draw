@@ -177,7 +177,12 @@ export function useInteraction (ctx) {
     if (!ctx.isDragging || ctx.isSnapping) return
     const deltaX = event.clientX - previousMouseX
     if (Math.abs(deltaX) > 2) ctx.hasDragged = true
-    if (ctx.carouselGroup) ctx.carouselGroup.rotation.y += deltaX * ctx.config.dragSensitivity
+
+    // Tự động kích độ nhạy vuốt lên 2.5 lần trên màn hình điện thoại
+    const isMobile = window.innerWidth < 768
+    const sens = isMobile ? ctx.config.dragSensitivity * 2.5 : ctx.config.dragSensitivity
+
+    if (ctx.carouselGroup) ctx.carouselGroup.rotation.y += deltaX * sens
     previousMouseX = event.clientX
   }
 
@@ -260,7 +265,12 @@ export function useInteraction (ctx) {
     event.preventDefault()
     const deltaX = event.touches[0].clientX - previousMouseX
     if (Math.abs(deltaX) > 2) ctx.hasDragged = true
-    if (ctx.carouselGroup) ctx.carouselGroup.rotation.y += deltaX * ctx.config.dragSensitivity
+
+    // Tự động kích độ nhạy vuốt lên 2.5 lần trên thiết bị di động
+    const isMobile = window.innerWidth < 768
+    const sens = isMobile ? ctx.config.dragSensitivity * 2.5 : ctx.config.dragSensitivity
+
+    if (ctx.carouselGroup) ctx.carouselGroup.rotation.y += deltaX * sens
     previousMouseX = event.touches[0].clientX
   }
 

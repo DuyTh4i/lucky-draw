@@ -45,7 +45,7 @@ export const useSettingsStore = defineStore('settings', {
       // Tự động tính tổng số thẻ của các giải
       const total = state.prizeTiers.reduce((sum, t) => sum + t.packCount, 0)
       // Tăng mức giới hạn trần an toàn lên 25 package theo yêu cầu
-      return Math.max(2, Math.min(total, 25))
+      return Math.max(1, Math.min(total, 25))
     },
     totalPrizePackCount (state) {
       return state.prizeTiers.reduce((sum, t) => sum + t.packCount, 0)

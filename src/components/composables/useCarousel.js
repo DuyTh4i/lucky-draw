@@ -93,8 +93,9 @@ export function useCarousel (ctx) {
 
     // Tính toán bán kính của vòng tròn ôm sát các package:
     // Cạnh của một đa giác nội tiếp đường tròn: c = 2 * R * sin(Pi / n).
-    // Ở đây package cần (packW + gap) chu vi:
-    ctx.config.radius = Math.max(2.5, (ctx.config.packW + gap) / (2 * Math.sin(Math.PI / n)))
+    ctx.config.radius = n <= 1
+      ? 2.5 // Bán kính tĩnh mặc định nếu chỉ có 1 thẻ
+      : Math.max(2.5, (ctx.config.packW + gap) / (2 * Math.sin(Math.PI / n)))
 
     ctx.rebuildCarousel()
 
