@@ -47,55 +47,106 @@
         <!-- Toggles Row -->
         <div class="toggles-row">
           <button class="toggle-pill" @click="onToggleMenuDarkMode">
-            {{ settings.menuDarkMode ? '☀️' : '🌙' }}
+            <svg
+              v-if="settings.menuDarkMode"
+              fill="none"
+              height="14"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="14"
+            >
+              <circle cx="12" cy="12" r="5" />
+              <path d="M12 1v2m0 18v2M4.2 4.2l1.4 1.4m12.8 12.8l1.4 1.4M1 12h2m18 0h2M4.2 19.8l1.4-1.4m12.8-12.8l1.4-1.4" />
+            </svg>
+            <svg
+              v-else
+              fill="none"
+              height="14"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="14"
+            >
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
             {{ t.menu }}
           </button>
           <button class="toggle-pill" @click="onToggleSceneDarkMode">
-            {{ settings.sceneDarkMode ? '☀️' : '🌙' }}
+            <svg
+              v-if="settings.sceneDarkMode"
+              fill="none"
+              height="14"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="14"
+            >
+              <circle cx="12" cy="12" r="5" />
+              <path d="M12 1v2m0 18v2M4.2 4.2l1.4 1.4m12.8 12.8l1.4 1.4M1 12h2m18 0h2M4.2 19.8l1.4-1.4m12.8-12.8l1.4-1.4" />
+            </svg>
+            <svg
+              v-else
+              fill="none"
+              height="14"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="14"
+            >
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
             {{ t.scene }}
           </button>
           <button class="toggle-pill lang-pill" @click="settings.toggleLanguage()">
-            {{ settings.language === 'vi' ? '🇬🇧 EN' : '🇻🇳 VI' }}
+            {{ settings.language === 'vi' ? 'EN' : 'VI' }}
           </button>
         </div>
 
-        <!-- Pack Count -->
-        <section class="sec">
-          <div class="sec-label">{{ t.packCount }}</div>
-          <div class="count-row">
-            <button
-              class="btn-sq"
-              :disabled="settings.packCount <= 2"
-              @click="changeCount(-1)"
-            >
-              −
-            </button>
-            <div class="count-center">
-              <span class="count-num">{{ String(settings.packCount).padStart(2, '0') }}</span>
-              <span class="count-of">/ {{ String(settings.packs.length).padStart(2, '0') }}</span>
-            </div>
-            <button
-              class="btn-sq"
-              :disabled="settings.packCount >= settings.packs.length"
-              @click="changeCount(1)"
-            >
-              +
-            </button>
-          </div>
-        </section>
+        <!-- Đã gỡ thanh chỉnh Pack Count theo yêu cầu -->
 
-        <!-- Active Packs -->
-        <section class="sec">
-          <div class="sec-label">{{ t.activePacks }}</div>
-          <div class="pack-list">
-            <div
-              v-for="(pack, i) in settings.activePacks"
-              :key="i"
-              class="pack-row"
-            >
-              <span class="pack-bar" :style="{ background: pack.color }" />
-              <span class="pack-name">{{ pack.name }}</span>
-              <span class="pack-id">#{{ String(i + 1).padStart(2, '0') }}</span>
+        <!-- Graphics Quality -->
+        <section class="sec" style="position: relative; z-index: 10;">
+          <div class="sec-label-row">
+            <span class="sec-label">{{ t.graphicsQuality }}</span>
+            <div class="custom-select" @click="toggleQualityDropdown">
+              <div class="select-selected">
+                <span v-if="settings.quality === 'low'">{{ t.low }}</span>
+                <span v-else-if="settings.quality === 'medium'">{{ t.medium }}</span>
+                <span v-else-if="settings.quality === 'high'">{{ t.high }}</span>
+                <span v-else-if="settings.quality === 'ultra'">{{ t.ultra }}</span>
+                <span v-else>{{ settings.quality }}</span>
+                <svg
+                  fill="none"
+                  style="transition: transform 0.2s; pointer-events: none;"
+                  :style="{ transform: isQualityDropdownOpen ? 'rotate(180deg)' : 'none' }"
+                  viewBox="0 0 10 6"
+                  width="10"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M1 1L5 5L9 1"
+                    stroke="#dc143c"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                  />
+                </svg>
+              </div>
+              <div v-show="isQualityDropdownOpen" class="select-items">
+                <div :class="{ active: settings.quality === 'low' }" @click.stop="selectQuality('low')">{{ t.low }}</div>
+                <div :class="{ active: settings.quality === 'medium' }" @click.stop="selectQuality('medium')">{{ t.medium }}</div>
+                <div :class="{ active: settings.quality === 'high' }" @click.stop="selectQuality('high')">{{ t.high }}</div>
+                <div :class="{ active: settings.quality === 'ultra' }" @click.stop="selectQuality('ultra')">{{ t.ultra }}</div>
+              </div>
             </div>
           </div>
         </section>
@@ -107,7 +158,7 @@
         <section class="sec">
           <div class="sec-label-row">
             <span class="sec-label">{{ t.prizeTiers }}</span>
-            <button class="btn-add" @click="settings.addPrizeTier()">+ {{ t.add }}</button>
+            <button class="btn-add" @click="onAddTier">+ {{ t.add }}</button>
           </div>
 
           <div class="tier-list">
@@ -126,14 +177,14 @@
                 <button
                   class="btn-tiny"
                   :disabled="tier.packCount <= 1"
-                  @click="settings.updateTierPackCount(i, tier.packCount - 1)"
+                  @click="onUpdateTierCount(i, tier.packCount - 1)"
                 >
                   −
                 </button>
                 <span class="tier-count-num">{{ tier.packCount }}</span>
                 <button
                   class="btn-tiny"
-                  @click="settings.updateTierPackCount(i, tier.packCount + 1)"
+                  @click="onUpdateTierCount(i, tier.packCount + 1)"
                 >
                   +
                 </button>
@@ -141,7 +192,7 @@
               <button
                 class="btn-remove"
                 :disabled="settings.prizeTiers.length <= 1"
-                @click="settings.removePrizeTier(i)"
+                @click="onRemoveTier(i)"
               >
                 ✕
               </button>
@@ -171,14 +222,17 @@
 
 <script setup>
   import gsap from 'gsap'
-  import { computed, nextTick, ref } from 'vue'
+  import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
   import { useSettingsStore } from '@/stores/settingsStore'
 
   const translations = {
     vi: {
       title: 'CÀI ĐẶT',
-      packCount: 'SỐ_LƯỢNG_GÓI',
-      activePacks: 'GÓI_ĐANG_DÙNG',
+      graphicsQuality: 'CHẤT_LƯỢNG_ĐỒ_HỌA',
+      low: 'Thấp',
+      medium: 'Vừa',
+      high: 'Cao',
+      ultra: 'Siêu Cấp',
       prizeTiers: 'BẬC_GIẢI_THƯỞNG',
       add: 'Thêm',
       total: 'Tổng',
@@ -193,8 +247,11 @@
     },
     en: {
       title: 'SETTINGS',
-      packCount: 'PACK_COUNT',
-      activePacks: 'ACTIVE_PACKS',
+      graphicsQuality: 'GRAPHICS_QUALITY',
+      low: 'Low',
+      medium: 'Med',
+      high: 'High',
+      ultra: 'Ultra',
       prizeTiers: 'PRIZE_TIERS',
       add: 'Add',
       total: 'Total',
@@ -211,9 +268,27 @@
 
   const settings = useSettingsStore()
   const open = ref(false)
+  const isQualityDropdownOpen = ref(false)
 
   const overlayRef = ref(null)
   const drawerRef = ref(null)
+
+  onMounted(() => {
+    document.addEventListener('click', closeQualityDropdown)
+  })
+
+  onUnmounted(() => {
+    document.removeEventListener('click', closeQualityDropdown)
+  })
+
+  function closeQualityDropdown () {
+    isQualityDropdownOpen.value = false
+  }
+
+  function toggleQualityDropdown (event) {
+    event.stopPropagation()
+    isQualityDropdownOpen.value = !isQualityDropdownOpen.value
+  }
 
   const t = computed(() => translations[settings.language] || translations.vi)
 
@@ -240,12 +315,32 @@
     }
   }
 
-  function changeCount (delta) {
-    const newCount = settings.packCount + delta
-    if (newCount >= 2 && newCount <= settings.packs.length) {
-      settings.setPackCount(newCount)
-      emit('settings-changed')
-    }
+  function onAddTier () {
+    settings.addPrizeTier()
+    emit('settings-changed')
+  }
+
+  function onUpdateTierCount (index, count) {
+    if (count < 1) return
+    settings.updateTierPackCount(index, count)
+    emit('settings-changed')
+  }
+
+  function onRemoveTier (index) {
+    settings.removePrizeTier(index)
+    emit('settings-changed')
+  }
+
+  function changeQuality (val) {
+    if (settings.quality === val) return
+    settings.setQuality(val)
+    // Đồ hoạ 3D cần nạp lại tài nguyên vật lý, memory và shader nên việc reload là tiêu chuẩn
+    window.location.reload()
+  }
+
+  function selectQuality (val) {
+    isQualityDropdownOpen.value = false
+    changeQuality(val)
   }
 
   function onToggleMenuDarkMode () {
@@ -412,6 +507,62 @@
   opacity: 0.8;
 }
 
+.custom-select {
+  position: relative;
+  width: 120px;
+  font-size: 0.75rem;
+  user-select: none;
+  z-index: 99;
+}
+.select-selected {
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  font-weight: 500;
+  min-height: 28px;
+}
+.select-selected:hover {
+  border-color: #dc143c;
+}
+.select-items {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #1a1a1a;
+  border: 1px solid #dc143c;
+  border-radius: 4px;
+  margin-top: 4px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+}
+.select-items div {
+  color: #ccc;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+.select-items div:hover {
+  background-color: #dc143c;
+  color: #fff;
+}
+.select-items div.active {
+  color: #dc143c;
+  font-weight: bold;
+  background-color: rgba(220, 20, 60, 0.1);
+}
+
 .count-row {
   display: flex;
   align-items: center;
@@ -483,37 +634,7 @@
   background: rgba(220, 20, 60, 0.08);
 }
 
-.pack-list {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.pack-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 8px;
-  border: 1px solid #1e1e1e;
-  border-radius: 3px;
-  background: #161616;
-  transition: border-color 0.15s;
-}
-.pack-row:hover { border-color: #333; }
-.pack-bar {
-  width: 3px;
-  height: 14px;
-  border-radius: 1px;
-  flex-shrink: 0;
-}
-.pack-name {
-  font-size: 0.75rem;
-  flex: 1;
-  color: #ddd;
-}
-.pack-id {
-  font-size: 0.55rem;
-  color: #444;
-}
+/* Loại bỏ CSS của pack-list cũ */
 
 /* ═══ PRIZE TIERS ═══ */
 .sec-label-row {
@@ -782,5 +903,26 @@
 }
 .drawer.light .drawer-scroll::-webkit-scrollbar-thumb {
   background: #ddd;
+}
+.drawer.light .select-selected {
+  background: #fff;
+  border-color: #ddd;
+  color: #333;
+}
+.drawer.light .select-items {
+  background: #fff;
+  border-color: #dc143c;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.drawer.light .select-items div {
+  color: #666;
+}
+.drawer.light .select-items div:hover {
+  background: #dc143c;
+  color: #fff;
+}
+.drawer.light .select-items div.active {
+  background: rgba(220, 20, 60, 0.05);
+  color: #dc143c;
 }
 </style>

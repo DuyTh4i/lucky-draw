@@ -14,7 +14,6 @@
   import { onMounted, onUnmounted } from 'vue'
   import { useSettingsStore } from '@/stores/settingsStore'
   import { useCarousel } from './composables/useCarousel'
-  import { useDebugGUI } from './composables/useDebugGUI'
   import { useInteraction } from './composables/useInteraction'
   import { useMainSceneContext } from './composables/useMainSceneContext'
   import { useWebGL } from './composables/useWebGL'
@@ -29,12 +28,10 @@
   const { initWebGL, startAnimation, disposeWebGL } = useWebGL(ctx, settingsStore)
   const { buildCarousel } = useCarousel(ctx)
   const { bindEvents, unbindEvents } = useInteraction(ctx)
-  const { setupGUI, disposeGUI } = useDebugGUI(ctx)
 
   onMounted(() => {
     initWebGL()
     buildCarousel()
-    setupGUI()
 
     // Initial snap – select the pack facing camera
     if (ctx.updateSelectedFromRotation) ctx.updateSelectedFromRotation(0)
@@ -50,7 +47,6 @@
   onUnmounted(() => {
     unbindEvents()
     disposeWebGL()
-    disposeGUI()
   })
 
   function syncFromStore () {

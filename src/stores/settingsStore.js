@@ -2,8 +2,10 @@ import { defineStore } from 'pinia'
 
 export const useSettingsStore = defineStore('settings', {
   state: () => ({
+    // Đồ hoạ: lưu mốc chất lượng vào ổ cứng trình duyệt để không mất khi tải lại trang
+    quality: localStorage.getItem('lucky-quality') || 'ultra',
+
     // Carousel
-    packCount: 15,
     radius: 4,
     dragSensitivity: 0.006,
 
@@ -24,29 +26,12 @@ export const useSettingsStore = defineStore('settings', {
     lookY: 0.3,
 
     // Pack data
-    packs: [
-      { name: 'Mewtwo Pack', color: '#8b2be2', texture: null },
-      { name: 'Charizard Pack', color: '#1a6ee8', texture: null },
-      { name: 'Pikachu Pack', color: '#e8281a', texture: null },
-      { name: 'Gengar Pack', color: '#18b85a', texture: null },
-      { name: 'Lugia Pack', color: '#e8a018', texture: null },
-      { name: 'Dragonite Pack', color: '#ff4488', texture: null },
-      { name: 'Rayquaza Pack', color: '#44ffaa', texture: null },
-      { name: 'Arceus Pack', color: '#ff8800', texture: null },
-      { name: 'Giratina Pack', color: '#0088ff', texture: null },
-      { name: 'Dialga Pack', color: '#aa44ff', texture: null },
-      { name: 'Ho-Oh Pack', color: '#ff3300', texture: null },
-      { name: 'Celebi Pack', color: '#33cc33', texture: null },
-      { name: 'Zapdos Pack', color: '#ffcc00', texture: null },
-      { name: 'Articuno Pack', color: '#00ccff', texture: null },
-      { name: 'Moltres Pack', color: '#ff6600', texture: null },
-    ],
 
     // Prize tiers
     prizeTiers: [
-      { name: 'Giải Nhất', nameEn: '1st Prize', packCount: 1 },
-      { name: 'Giải Nhì', nameEn: '2nd Prize', packCount: 2 },
-      { name: 'Giải Ba', nameEn: '3rd Prize', packCount: 3 },
+      { name: 'Giải Nhất', nameEn: '1st Prize', packCount: 5 },
+      { name: 'Giải Nhì', nameEn: '2nd Prize', packCount: 5 },
+      { name: 'Giải Ba', nameEn: '3rd Prize', packCount: 5 },
     ],
 
     // UI preferences
@@ -56,8 +41,11 @@ export const useSettingsStore = defineStore('settings', {
   }),
 
   getters: {
-    activePacks (state) {
-      return state.packs.slice(0, state.packCount)
+    packCount (state) {
+      // Tự động tính tổng số thẻ của các giải
+      const total = state.prizeTiers.reduce((sum, t) => sum + t.packCount, 0)
+      // Tăng mức giới hạn trần an toàn lên 25 package theo yêu cầu
+      return Math.max(2, Math.min(total, 25))
     },
     totalPrizePackCount (state) {
       return state.prizeTiers.reduce((sum, t) => sum + t.packCount, 0)
@@ -65,32 +53,12 @@ export const useSettingsStore = defineStore('settings', {
   },
 
   actions: {
-    setPackCount (count) {
-      this.packCount = Math.max(2, Math.min(count, this.packs.length))
+    setQuality (val) {
+      this.quality = val
+      localStorage.setItem('lucky-quality', val)
     },
 
-    updatePack (index, data) {
-      if (index >= 0 && index < this.packs.length) {
-        this.packs[index] = { ...this.packs[index], ...data }
-      }
-    },
-
-    addPack (pack) {
-      this.packs.push({
-        name: pack.name || `Pack ${this.packs.length + 1}`,
-        color: pack.color || '#8b2be2',
-        texture: pack.texture || null,
-      })
-    },
-
-    removePack (index) {
-      if (this.packs.length > 2) {
-        this.packs.splice(index, 1)
-        if (this.packCount > this.packs.length) {
-          this.packCount = this.packs.length
-        }
-      }
-    },
+    // Đã gỡ setPackCount vì sử dụng Getters tự động
 
     // Prize tier actions
     addPrizeTier () {

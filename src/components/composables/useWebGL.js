@@ -8,9 +8,20 @@ export function useWebGL (ctx, settingsStore) {
     const w = window.innerWidth
     const h = window.innerHeight
 
-    ctx.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
-    // Giới hạn pixelRatio ở mức 2 (Màn hình 3x 4x sẽ không phải vẽ quá nhiều ngốn GPU)
-    ctx.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    const q = settingsStore.quality
+    let prLimit = 2
+    if (q === 'low') {
+      prLimit = 1
+    }
+    if (q === 'high') {
+      prLimit = Math.max(window.devicePixelRatio, 3)
+    }
+    if (q === 'ultra') {
+      prLimit = Math.max(window.devicePixelRatio, 4)
+    }
+
+    ctx.renderer = new THREE.WebGLRenderer({ canvas, antialias: q !== 'low', alpha: true })
+    ctx.renderer.setPixelRatio(Math.min(window.devicePixelRatio, prLimit))
     ctx.renderer.setSize(w, h, false)
 
     // Tắt hoàn toàn bộ tính bóng đổ vì project hiện tại không có nguồn sáng nào (light) castShadow
@@ -31,10 +42,23 @@ export function useWebGL (ctx, settingsStore) {
   }
 
   function buildFloor () {
+    const q = settingsStore.quality
+    // Bề mặt phản chiếu là tính toán nặng nhất, chia độ nét texture riêng biệt
+    let refScale = 0.2 // medium
+    if (q === 'high') {
+      refScale = 0.4
+    }
+    if (q === 'ultra') {
+      refScale = 1 // 100% độ nét thật
+    }
+    if (q === 'low') {
+      refScale = 0.05
+    }
+
     const reflector = new Reflector(new THREE.PlaneGeometry(30, 30), {
-      clipBias: 0.003,
-      textureWidth: window.innerWidth * window.devicePixelRatio * 0.2,
-      textureHeight: window.innerHeight * window.devicePixelRatio * 0.2,
+      clipBias: (q === 'high' || q === 'ultra') ? 0.003 : 0.01,
+      textureWidth: window.innerWidth * window.devicePixelRatio * refScale,
+      textureHeight: window.innerHeight * window.devicePixelRatio * refScale,
       color: 0xff_ff_ff,
     })
     reflector.rotation.x = -Math.PI / 2
@@ -42,7 +66,7 @@ export function useWebGL (ctx, settingsStore) {
     ctx.scene.add(reflector)
 
     ctx.fadeMat = new THREE.MeshBasicMaterial({
-      color: settingsStore.sceneDarkMode ? 0x0a_0a_14 : 0xee_f2_ff, transparent: true, opacity: 0.72, depthWrite: false,
+      color: settingsStore.sceneDarkMode ? 0x0a_0a_14 : 0xee_f2_ff, transparent: true, opacity: 0.8, depthWrite: false,
     })
     const fade = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), ctx.fadeMat)
     fade.rotation.x = -Math.PI / 2
@@ -50,7 +74,7 @@ export function useWebGL (ctx, settingsStore) {
     ctx.scene.add(fade)
 
     ctx.nearFadeMat = new THREE.MeshBasicMaterial({
-      color: settingsStore.sceneDarkMode ? 0x0a_0a_14 : 0xee_f2_ff, transparent: true, opacity: 0.35, depthWrite: false,
+      color: settingsStore.sceneDarkMode ? 0x0a_0a_14 : 0xee_f2_ff, transparent: true, opacity: 0.4, depthWrite: false,
     })
     const nearFade = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), ctx.nearFadeMat)
     nearFade.rotation.x = -Math.PI / 2
@@ -59,18 +83,27 @@ export function useWebGL (ctx, settingsStore) {
   }
 
   function buildLights () {
-    ctx.scene.add(new THREE.AmbientLight(0xff_ff_ff, 1))
-    const dir = new THREE.DirectionalLight(0xff_ff_ff, 1)
-    dir.position.set(0, 10, 0)
-    ctx.scene.add(dir)
+    const q = settingsStore.quality
 
-    // const rim = new THREE.PointLight(0xaa_44_ff, 1.4, 22)
-    // rim.position.set(-5, 4, -5)
-    // ctx.scene.add(rim)
+    // Thay đèn Directional (Chiếu điểm hội tụ) bằng Ánh sáng tản đều cho toàn bộ Scene
+    // Đảm bảo không chiếu flash hội tụ làm lóa vỡ ảnh của thẻ bài nằm chính giữa
+    ctx.scene.add(new THREE.AmbientLight(0xff_ff_ff, 2.4))
 
-    // const fill = new THREE.PointLight(0x44_cc_ff, 0.9, 22)
-    // fill.position.set(5, 2, 5)
-    // ctx.scene.add(fill)
+    // Đèn hắt từ góc đỉnh xuống mờ nhẹ cho có vân khối
+    const topDir = new THREE.DirectionalLight(0xff_ff_ff, 0.3)
+    topDir.position.set(0, 10, 0)
+    ctx.scene.add(topDir)
+
+    // Đèn trang trí phụ trợ
+    if (q !== 'low') {
+      const rim = new THREE.PointLight(0xaa_44_ff, 2.5, 22)
+      rim.position.set(-5, 4, -5)
+      ctx.scene.add(rim)
+
+      const fill = new THREE.PointLight(0x44_cc_ff, 1.8, 22)
+      fill.position.set(5, 2, 5)
+      ctx.scene.add(fill)
+    }
   }
 
   ctx.updateCamera = function () {
@@ -78,12 +111,8 @@ export function useWebGL (ctx, settingsStore) {
       return
     }
 
-    // Thay vì dựa vào chiều rộng cửa sổ có thể bị độ lệch do DevTools hoặc scrollbar,
-    // ta check tỷ lệ khung hình canvas: dọc (aspect < 1) => đích xác là hiển thị điện thoại
-    const isMobile = ctx.camera.aspect < 1
-    const mobileOffset = isMobile ? 2.5 : 0
-
-    ctx.camera.position.set(ctx.config.camX, ctx.config.camY, ctx.config.camZ + mobileOffset)
+    // Đã xóa offset `isMobile ? 2.5 : 0` vì thuật toán này gây giật cục size khi chạm biên
+    ctx.camera.position.set(ctx.config.camX, ctx.config.camY, ctx.config.camZ)
     ctx.camera.lookAt(0, ctx.config.lookY, 0)
   }
 

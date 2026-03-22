@@ -8,7 +8,7 @@ export function useInteraction (ctx) {
   let holdTimer = null
   let pendingSpinX = 0
   let hitOnPack = false
-  const HOLD_DELAY = 200
+  const HOLD_DELAY = 100
 
   let previousMouseX = 0
   let spinLastX = 0

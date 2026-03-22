@@ -1,54 +1,36 @@
 /* eslint-disable curly */
 import * as THREE from 'three'
-
-const ALL_COLORS = [
-  0x8b_2b_e2, 0x1a_6e_e8, 0xe8_28_1a, 0x18_b8_5a, 0xe8_a0_18,
-  0xff_44_88, 0x44_ff_aa, 0xff_88_00, 0x00_88_ff, 0xaa_44_ff,
-]
+import backTexUrl from '@/assets/texture/back.webp'
+import frontTexUrl from '@/assets/texture/front.webp'
+import { useSettingsStore } from '@/stores/settingsStore'
 
 export function useCarousel (ctx) {
-  const materialCache = {}
+  // Thay vì giấu bên trong, ta khai báo Texture tĩnh ở ngoài để load 1 lần xài chung
+  const textureLoader = new THREE.TextureLoader()
+  const frontTex = textureLoader.load(frontTexUrl)
+  frontTex.colorSpace = THREE.SRGBColorSpace
+  const backTex = textureLoader.load(backTexUrl)
+  backTex.colorSpace = THREE.SRGBColorSpace
+
   const sideMat = new THREE.MeshBasicMaterial({ color: 0x11_00_22 })
+  // Lưu chung 1 bộ vật liệu thực (Shared Material Cache) thay vì lưu riêng màu
+  let sharedMaterials = null
 
-  // eslint-disable-next-line no-unused-vars
-  function createPackMesh (colorHex, index) {
-    if (!materialCache[colorHex]) {
-      const fw = 128
-      const fh = Math.round(fw * 1.6) // ~205px
-      const fc = document.createElement('canvas')
-      fc.width = fw
-      fc.height = fh
-      const frontCtx = fc.getContext('2d')
-      const grad = frontCtx.createLinearGradient(0, 0, fw, fh)
-      grad.addColorStop(0, '#' + colorHex.toString(16).padStart(6, '0'))
-      grad.addColorStop(1, '#1a0033')
-      frontCtx.fillStyle = grad
-      frontCtx.fillRect(0, 0, fw, fh)
+  function createPackMesh () {
+    if (!sharedMaterials) {
+      const q = useSettingsStore().quality
+      const Ctor = q === 'low' ? THREE.MeshBasicMaterial : THREE.MeshStandardMaterial
 
-      const sheen = frontCtx.createLinearGradient(0, 0, fw, 0)
-      sheen.addColorStop(0, 'rgba(255,255,255,0.00)')
-      sheen.addColorStop(0.4, 'rgba(255,255,255,0.18)')
-      sheen.addColorStop(1, 'rgba(255,255,255,0.00)')
-      frontCtx.fillStyle = sheen
-      frontCtx.fillRect(0, 0, fw, fh)
-
-      const bc = document.createElement('canvas')
-      bc.width = fw
-      bc.height = fh
-      const bctx = bc.getContext('2d')
-      bctx.fillStyle = '#0d0d2b'
-      bctx.fillRect(0, 0, fw, fh)
-
-      materialCache[colorHex] = [
+      sharedMaterials = [
         sideMat, sideMat, sideMat, sideMat,
-        new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(fc), roughness: 0.5 }),
-        new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(bc), roughness: 0.5 }),
+        new Ctor({ map: frontTex, roughness: 0.4 }),
+        new Ctor({ map: backTex, roughness: 0.4 }),
       ]
     }
 
     return new THREE.Mesh(
       new THREE.BoxGeometry(ctx.config.packW, ctx.config.packH, ctx.config.packD),
-      materialCache[colorHex],
+      sharedMaterials,
     )
   }
 
@@ -73,7 +55,7 @@ export function useCarousel (ctx) {
 
     for (let i = 0; i < ctx.config.packCount; i++) {
       const angle = (i / ctx.config.packCount) * Math.PI * 2
-      const mesh = createPackMesh(ALL_COLORS[i % ALL_COLORS.length], i)
+      const mesh = createPackMesh()
 
       mesh.position.x = Math.sin(angle) * ctx.config.radius
       mesh.position.z = Math.cos(angle) * ctx.config.radius
@@ -120,10 +102,6 @@ export function useCarousel (ctx) {
     // Với radius = ~4.2 -> camZ = 7 => khoảng cách từ màn hình đến thẻ tầm 2.8
     ctx.config.camZ = ctx.config.radius + 4
     if (ctx.updateCamera) ctx.updateCamera()
-
-    if (ctx.gui) {
-      for (const c of ctx.gui.controllersRecursive()) c.updateDisplay()
-    }
   }
 
   return { buildCarousel }
