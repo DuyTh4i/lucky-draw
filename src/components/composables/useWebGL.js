@@ -111,8 +111,11 @@ export function useWebGL (ctx, settingsStore) {
       return
     }
 
-    // Đã xóa offset `isMobile ? 2.5 : 0` vì thuật toán này gây giật cục size khi chạm biên
-    ctx.camera.position.set(ctx.config.camX, ctx.config.camY, ctx.config.camZ)
+    // Tự động đẩy Camera ra xa thêm 2 đơn vị nếu là giao diện dọc / điện thoại hẹp
+    const isMobile = window.innerWidth < 768
+    const zOffset = isMobile ? 2 : 0
+
+    ctx.camera.position.set(ctx.config.camX, ctx.config.camY, ctx.config.camZ + zOffset)
     ctx.camera.lookAt(0, ctx.config.lookY, 0)
   }
 
