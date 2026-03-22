@@ -111,8 +111,6 @@
           </button>
         </div>
 
-        <!-- Đã gỡ thanh chỉnh Pack Count theo yêu cầu -->
-
         <!-- Graphics Quality -->
         <section class="sec" style="position: relative; z-index: 10;">
           <div class="sec-label-row">
@@ -154,52 +152,78 @@
         <!-- Divider -->
         <div class="divider" />
 
-        <!-- Prize Tiers -->
+        <!-- ═══ PRIZE TIERS (6 bậc cố định) ═══ -->
         <section class="sec">
           <div class="sec-label-row">
             <span class="sec-label">{{ t.prizeTiers }}</span>
-            <button class="btn-add" @click="onAddTier">+ {{ t.add }}</button>
+            <span class="tier-total">{{ t.total }}: {{ prizeStore.totalPackCount }}</span>
           </div>
 
           <div class="tier-list">
             <div
-              v-for="(tier, i) in settings.prizeTiers"
-              :key="i"
-              class="tier-row"
+              v-for="(tier, i) in prizeStore.tiers"
+              :key="tier.id"
+              class="tier-card"
             >
-              <span class="tier-badge">{{ i + 1 }}</span>
-              <input
-                class="tier-name-input"
-                :value="tier.name"
-                @input="settings.updateTierName(i, $event.target.value)"
-              >
-              <div class="tier-count">
-                <button
-                  class="btn-tiny"
-                  :disabled="tier.packCount <= 1"
-                  @click="onUpdateTierCount(i, tier.packCount - 1)"
-                >
-                  −
-                </button>
-                <span class="tier-count-num">{{ tier.packCount }}</span>
-                <button
-                  class="btn-tiny"
-                  @click="onUpdateTierCount(i, tier.packCount + 1)"
-                >
-                  +
-                </button>
+              <!-- Header row: badge + tên + quantity -->
+              <div class="tier-header">
+                <span class="tier-dot" :style="{ background: tier.color }" />
+                <span class="tier-label">{{ settings.language === 'vi' ? tier.labelVi : tier.labelEn }}</span>
+                <div class="tier-qty">
+                  <button
+                    class="btn-tiny"
+                    :disabled="tier.quantity <= 0"
+                    @click="onDecrement(i)"
+                  >−</button>
+                  <input
+                    class="tier-qty-input"
+                    min="0"
+                    type="number"
+                    :value="tier.quantity"
+                    @change="onSetQuantity(i, $event)"
+                    @focus="$event.target.select()"
+                  >
+                  <button
+                    class="btn-tiny"
+                    @click="onIncrement(i)"
+                  >+</button>
+                </div>
               </div>
-              <button
-                class="btn-remove"
-                :disabled="settings.prizeTiers.length <= 1"
-                @click="onRemoveTier(i)"
-              >
-                ✕
-              </button>
+
+              <!-- Texture row: preview + upload/remove -->
+              <div class="tier-texture">
+                <img :alt="tier.id" class="tex-preview" :src="tier.texture">
+                <div class="tex-actions">
+                  <label class="btn-upload" :for="'tex-upload-' + i">
+                    <svg
+                      fill="none"
+                      height="11"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="11"
+                    >
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+                    </svg>
+                    {{ t.upload }}
+                  </label>
+                  <input
+                    :id="'tex-upload-' + i"
+                    accept="image/webp,image/png,image/jpeg,image/jpg,image/gif,image/bmp"
+                    hidden
+                    type="file"
+                    @change="onUploadTexture(i, $event)"
+                  >
+                  <button
+                    v-if="tier.hasCustomTexture"
+                    class="btn-tex-remove"
+                    @click="onRemoveTexture(i)"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-          <div class="tier-summary">
-            {{ t.total }}: {{ settings.totalPrizePackCount }} packages
           </div>
         </section>
 
@@ -213,7 +237,6 @@
         <section class="sec future">
           <div class="sec-label">{{ t.upcoming }}</div>
           <p>› {{ t.upAuth }}</p>
-          <p>› {{ t.upTextures }}</p>
         </section>
       </div>
     </aside>
@@ -223,6 +246,7 @@
 <script setup>
   import gsap from 'gsap'
   import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
+  import { usePrizeStore } from '@/stores/prizeStore'
   import { useSettingsStore } from '@/stores/settingsStore'
 
   const translations = {
@@ -233,9 +257,9 @@
       medium: 'Vừa',
       high: 'Cao',
       ultra: 'Siêu Cấp',
-      prizeTiers: 'BẬC_GIẢI_THƯỞNG',
-      add: 'Thêm',
+      prizeTiers: 'GIẢI_THƯỞNG',
       total: 'Tổng',
+      upload: 'Tải',
       reset: 'ĐẶT LẠI',
       dark: 'Tối',
       light: 'Sáng',
@@ -243,7 +267,6 @@
       scene: 'Nền',
       upcoming: 'SẮP_RA_MẮT',
       upAuth: 'Đăng nhập & Đồng bộ',
-      upTextures: 'Tải lên hình ảnh gói',
     },
     en: {
       title: 'SETTINGS',
@@ -252,9 +275,9 @@
       medium: 'Med',
       high: 'High',
       ultra: 'Ultra',
-      prizeTiers: 'PRIZE_TIERS',
-      add: 'Add',
+      prizeTiers: 'PRIZES',
       total: 'Total',
+      upload: 'Upload',
       reset: 'RESET',
       dark: 'Dark',
       light: 'Light',
@@ -262,11 +285,11 @@
       scene: 'Scene',
       upcoming: 'UPCOMING',
       upAuth: 'User Auth & Cloud Sync',
-      upTextures: 'Custom Textures Upload',
     },
   }
 
   const settings = useSettingsStore()
+  const prizeStore = usePrizeStore()
   const open = ref(false)
   const isQualityDropdownOpen = ref(false)
 
@@ -315,20 +338,43 @@
     }
   }
 
-  function onAddTier () {
-    settings.addPrizeTier()
+  // Prize tier actions
+  function onIncrement (index) {
+    prizeStore.increment(index)
     emit('settings-changed')
   }
 
-  function onUpdateTierCount (index, count) {
-    if (count < 1) return
-    settings.updateTierPackCount(index, count)
+  function onDecrement (index) {
+    prizeStore.decrement(index)
     emit('settings-changed')
   }
 
-  function onRemoveTier (index) {
-    settings.removePrizeTier(index)
+  function onSetQuantity (index, event) {
+    const val = Number.parseInt(event.target.value, 10)
+    if (Number.isNaN(val) || val < 0) {
+      event.target.value = prizeStore.tiers[index].quantity
+      return
+    }
+    prizeStore.setQuantity(index, val)
     emit('settings-changed')
+  }
+
+  async function onUploadTexture (index, event) {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    try {
+      await prizeStore.uploadTexture(index, file)
+    } catch (error) {
+      console.error(error)
+    }
+
+    // Reset input để cho phép upload lại cùng file
+    event.target.value = ''
+  }
+
+  function onRemoveTexture (index) {
+    prizeStore.removeCustomTexture(index)
   }
 
   function changeQuality (val) {
@@ -443,12 +489,12 @@
 /* Toggles Row */
 .toggles-row {
   display: flex;
-  gap: 8px; /* Giảm gap cho màn hình nhỏ */
+  gap: 8px;
   margin-bottom: 24px;
 }
 .toggle-pill {
   flex: 1;
-  min-width: 0; /* Cho phép shrink quá nội dung */
+  min-width: 0;
   background: #1a1a1a;
   border: 1px solid #333;
   color: #bbb;
@@ -470,7 +516,7 @@
   background: rgba(220, 20, 60, 0.1);
 }
 .lang-pill {
-  flex: 0.8; /* Nút ngôn ngữ nhỏ hơn chút */
+  flex: 0.8;
 }
 .close-x {
   background: none;
@@ -563,52 +609,6 @@
   background-color: rgba(220, 20, 60, 0.1);
 }
 
-.count-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-}
-.count-center {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  min-width: 60px;
-  justify-content: center;
-}
-.count-num {
-  font-size: 1.6rem;
-  font-weight: bold;
-  color: #fff;
-}
-.count-of {
-  font-size: 0.6rem;
-  color: #555;
-}
-
-.btn-sq {
-  width: 32px;
-  height: 32px;
-  border: 1px solid #333;
-  border-radius: 4px;
-  background: #1a1a1a;
-  color: #ccc;
-  cursor: pointer;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-.btn-sq:hover:not(:disabled) {
-  border-color: #dc143c;
-  color: #fff;
-}
-.btn-sq:disabled {
-  opacity: 0.25;
-  cursor: not-allowed;
-}
-
 .divider {
   height: 1px;
   background: #222;
@@ -634,8 +634,6 @@
   background: rgba(220, 20, 60, 0.08);
 }
 
-/* Loại bỏ CSS của pack-list cũ */
-
 /* ═══ PRIZE TIERS ═══ */
 .sec-label-row {
   display: flex;
@@ -643,88 +641,95 @@
   justify-content: space-between;
   margin-bottom: 8px;
 }
-.btn-add {
-  background: none;
-  border: 1px solid #333;
-  border-radius: 3px;
-  color: #aaa;
-  cursor: pointer;
-  padding: 2px 8px;
-  font-family: inherit;
-  font-size: 0.6rem;
+
+.tier-total {
+  font-size: 0.62rem;
+  color: #666;
   letter-spacing: 1px;
-  transition: all 0.2s;
-}
-.btn-add:hover {
-  border-color: #dc143c;
-  color: #dc143c;
 }
 
 .tier-list {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-}
-.tier-row {
-  display: flex;
-  align-items: center;
   gap: 6px;
-  padding: 5px 6px;
-  border: 1px solid #1e1e1e;
-  border-radius: 3px;
-  background: #161616;
-}
-.tier-badge {
-  width: 20px;
-  height: 20px;
-  border-radius: 3px;
-  background: rgba(220, 20, 60, 0.15);
-  color: #dc143c;
-  font-size: 0.65rem;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.tier-name-input {
-  flex: 1;
-  background: none;
-  border: none;
-  border-bottom: 1px solid #2a2a2a;
-  color: #ddd;
-  font-family: inherit;
-  font-size: 0.72rem;
-  padding: 2px 4px;
-  outline: none;
-  transition: border-color 0.2s;
-  min-width: 0;
-}
-.tier-name-input:focus {
-  border-color: #dc143c;
 }
 
-.tier-count {
+.tier-card {
+  border: 1px solid #1e1e1e;
+  border-radius: 6px;
+  background: #161616;
+  padding: 8px 10px;
+  transition: border-color 0.2s;
+}
+.tier-card:hover {
+  border-color: #2a2a2a;
+}
+
+.tier-header {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 8px;
+}
+
+.tier-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px currentColor;
+}
+
+.tier-label {
+  flex: 1;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #ddd;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.tier-qty {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   flex-shrink: 0;
 }
-.tier-count-num {
-  font-size: 0.75rem;
+
+.tier-qty-input {
+  width: 28px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 3px;
   color: #fff;
-  min-width: 18px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: bold;
   text-align: center;
+  padding: 1px 2px;
+  outline: none;
+  transition: border-color 0.2s;
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
+.tier-qty-input::-webkit-outer-spin-button,
+.tier-qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.tier-qty-input:focus {
+  border-color: #dc143c;
+  background: #0e0e0e;
+}
+
 .btn-tiny {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border: 1px solid #333;
-  border-radius: 2px;
+  border-radius: 3px;
   background: #1a1a1a;
   color: #999;
   cursor: pointer;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -740,29 +745,65 @@
   cursor: not-allowed;
 }
 
-.btn-remove {
-  background: none;
-  border: none;
-  color: #444;
-  cursor: pointer;
-  font-size: 0.55rem;
-  padding: 2px 3px;
-  transition: color 0.15s;
-}
-.btn-remove:hover:not(:disabled) {
-  color: #dc143c;
-}
-.btn-remove:disabled {
-  opacity: 0.2;
-  cursor: not-allowed;
+/* Texture row */
+.tier-texture {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #1e1e1e;
 }
 
-.tier-summary {
-  margin-top: 6px;
-  font-size: 0.6rem;
+.tex-preview {
+  width: 48px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 3px;
+  border: 1px solid #2a2a2a;
+  background: #0a0a0a;
+}
+
+.tex-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 1px solid #333;
+  border-radius: 3px;
+  color: #aaa;
+  cursor: pointer;
+  padding: 3px 8px;
+  font-family: inherit;
+  font-size: 0.58rem;
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+.btn-upload:hover {
+  border-color: #dc143c;
+  color: #dc143c;
+}
+
+.btn-tex-remove {
+  background: none;
+  border: 1px solid #333;
+  border-radius: 3px;
   color: #666;
-  text-align: right;
-  letter-spacing: 1px;
+  cursor: pointer;
+  padding: 2px 5px;
+  font-size: 0.5rem;
+  transition: all 0.15s;
+}
+.btn-tex-remove:hover {
+  border-color: #dc143c;
+  color: #dc143c;
 }
 
 .future { opacity: 0.4; }
@@ -819,50 +860,35 @@
   color: #dc143c;
   opacity: 0.7;
 }
-.drawer.light .count-num {
-  color: #111;
-}
-.drawer.light .count-of {
-  color: #aaa;
-}
-.drawer.light .btn-sq {
-  background: #fff;
-  border-color: #ddd;
-  color: #555;
-}
-.drawer.light .btn-sq:hover:not(:disabled) {
-  border-color: #dc143c;
-  color: #dc143c;
-}
-.drawer.light .pack-row {
-  background: #fff;
-  border-color: #eee;
-}
-.drawer.light .pack-row:hover {
-  border-color: #ccc;
-}
-.drawer.light .pack-name {
-  color: #333;
-}
-.drawer.light .pack-id {
-  color: #bbb;
-}
 .drawer.light .divider {
   background: #e0e0e0;
 }
-.drawer.light .tier-row {
+.drawer.light .tier-card {
   background: #fff;
   border-color: #eee;
 }
-.drawer.light .tier-name-input {
-  color: #333;
-  border-bottom-color: #ddd;
+.drawer.light .tier-card:hover {
+  border-color: #ddd;
 }
-.drawer.light .tier-name-input:focus {
+.drawer.light .tier-label {
+  color: #333;
+}
+.drawer.light .tier-qty-input {
+  color: #111;
+}
+.drawer.light .tier-qty-input:focus {
+  background: #fff;
   border-color: #dc143c;
 }
-.drawer.light .tier-count-num {
-  color: #111;
+.drawer.light .tier-total {
+  color: #999;
+}
+.drawer.light .tier-texture {
+  border-top-color: #eee;
+}
+.drawer.light .tex-preview {
+  border-color: #ddd;
+  background: #f0f0f0;
 }
 .drawer.light .btn-tiny {
   background: #fff;
@@ -873,14 +899,21 @@
   border-color: #dc143c;
   color: #dc143c;
 }
-.drawer.light .btn-remove {
-  color: #ccc;
+.drawer.light .btn-upload {
+  border-color: #ddd;
+  color: #888;
 }
-.drawer.light .btn-remove:hover:not(:disabled) {
+.drawer.light .btn-upload:hover {
+  border-color: #dc143c;
   color: #dc143c;
 }
-.drawer.light .tier-summary {
-  color: #999;
+.drawer.light .btn-tex-remove {
+  border-color: #ddd;
+  color: #ccc;
+}
+.drawer.light .btn-tex-remove:hover {
+  border-color: #dc143c;
+  color: #dc143c;
 }
 .drawer.light .btn-reset {
   background: #fff;
@@ -889,14 +922,6 @@
 .drawer.light .btn-reset:hover {
   border-color: #dc143c;
   background: rgba(220, 20, 60, 0.04);
-}
-.drawer.light .btn-add {
-  border-color: #ddd;
-  color: #888;
-}
-.drawer.light .btn-add:hover {
-  border-color: #dc143c;
-  color: #dc143c;
 }
 .drawer.light .future p {
   color: #aaa;

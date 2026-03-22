@@ -36,6 +36,7 @@ export function useMainSceneContext () {
     isSnapping: false,
     isSpinningPack: false,
     hasDragged: false,
+    isPackageSelected: false,
     // Mats
     fadeMat: null,
     nearFadeMat: null,
@@ -49,6 +50,9 @@ export function useMainSceneContext () {
     onPackHover: () => {},
     onPackOut: () => {},
     applyTheme: () => {},
+    liftSelectedPackage: () => {},
+    lowerSelectedPackage: () => {},
+    isLiftingOrSelected: () => false,
   }
 
   return ctx

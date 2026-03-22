@@ -160,11 +160,31 @@ export function useWebGL (ctx, settingsStore) {
     // Bobbing animation
     if (ctx.packMeshes) {
       for (let i = 0; i < ctx.packMeshes.length; i++) {
+        const mesh = ctx.packMeshes[i]
+        const extraY = mesh.userData.liftExtraY || 0
+        const extraZ = mesh.userData.liftExtraZ || 0
+        // Tắt bobbing khi đang lift hoặc đã selected
         const phase = (i / ctx.packMeshes.length) * Math.PI * 2
-        const bobY = Math.sin(time * ctx.config.bobSpeed + phase) * ctx.config.bobAmplitude
-        const targetY = ctx.config.packY + bobY
-        ctx.packMeshes[i].position.y += (targetY - ctx.packMeshes[i].position.y) * 0.12
+        const bobY = extraY || ctx.isPackageSelected
+          ? 0
+          : Math.sin(time * ctx.config.bobSpeed + phase) * ctx.config.bobAmplitude
+        const targetY = ctx.config.packY + bobY + extraY
+        // Khi đang lift: set trực tiếp (không lerp) để đồng bộ với camera
+        if (extraY || extraZ) {
+          mesh.position.y = targetY
+          // Đưa package lại gần camera (dọc theo hướng nhìn của nó)
+          const angle = mesh.userData.baseAngle || 0
+          mesh.position.x = Math.sin(angle) * ctx.config.radius + Math.sin(angle) * extraZ
+          mesh.position.z = Math.cos(angle) * ctx.config.radius + Math.cos(angle) * extraZ
+        } else {
+          mesh.position.y += (targetY - mesh.position.y) * 0.12
+        }
       }
+    }
+
+    // Khi đã selected, camera cần liên tục lookAt theo config.lookY
+    if (ctx.isPackageSelected && ctx.camera) {
+      ctx.camera.lookAt(0, ctx.config.lookY, 0)
     }
 
     try {

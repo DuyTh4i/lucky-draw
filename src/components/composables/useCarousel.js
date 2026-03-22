@@ -1,7 +1,7 @@
 /* eslint-disable curly */
 import * as THREE from 'three'
-import backTexUrl from '@/assets/texture/back.webp'
-import frontTexUrl from '@/assets/texture/front.webp'
+import backTexUrl from '@/assets/texture/package/default/back.webp'
+import frontTexUrl from '@/assets/texture/package/default/front.webp'
 import { useSettingsStore } from '@/stores/settingsStore'
 
 export function useCarousel (ctx) {
@@ -12,7 +12,7 @@ export function useCarousel (ctx) {
   const backTex = textureLoader.load(backTexUrl)
   backTex.colorSpace = THREE.SRGBColorSpace
 
-  const sideMat = new THREE.MeshBasicMaterial({ color: 0x11_00_22 })
+  const sideMat = new THREE.MeshBasicMaterial({ color: 0x94_18_1e })
   // Lưu chung 1 bộ vật liệu thực (Shared Material Cache) thay vì lưu riêng màu
   let sharedMaterials = null
 
@@ -39,9 +39,6 @@ export function useCarousel (ctx) {
     for (const mesh of ctx.packMeshes) {
       if (ctx.interactionManager) ctx.interactionManager.remove(mesh)
       mesh.geometry.dispose()
-
-      // Đã loại bỏ logic dispose material vì giờ ta đã lưu vào cache (chỉ khoảng chục cái tĩnh)
-      // Mọi lần kéo thanh UI thay đổi số lượng màn sẽ rốt ráo không tốn chu kỳ build texture Canvas.
     }
     ctx.scene.remove(ctx.carouselGroup)
     ctx.carouselGroup = null
@@ -62,8 +59,6 @@ export function useCarousel (ctx) {
       mesh.rotation.y = angle
       mesh.userData.packIndex = i
       mesh.userData.baseAngle = angle
-      // Bỏ bóng vì đã tắt ShadowMap trong useWebGL để tránh hao tài nguyên vô ích
-      mesh.castShadow = false
 
       ctx.packMeshes.push(mesh)
       ctx.carouselGroup.add(mesh)
