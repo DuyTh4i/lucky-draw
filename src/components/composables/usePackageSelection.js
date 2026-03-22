@@ -32,6 +32,13 @@ export function usePackageSelection (ctx) {
 
     isLifting = true
 
+    // Trên điện thoại (màn dọc) cần nâng cao hơn
+    const isMobile = window.innerWidth < 768
+    const mobileScale = isMobile ? 1.1 : 1
+    const liftAmount = LIFT_AMOUNT * mobileScale
+    const liftCamAmount = LIFT_CAMERA_AMOUNT * mobileScale
+    const liftLookAmount = LIFT_LOOK_AMOUNT * mobileScale
+
     // Lưu vị trí gốc
     originalCamY = ctx.camera.position.y
     originalLookY = ctx.config.lookY
@@ -47,15 +54,15 @@ export function usePackageSelection (ctx) {
       const ease = 1 - Math.pow(1 - t, 3) // ease-out cubic
 
       // Nâng camera lên
-      ctx.camera.position.y = startCamY + LIFT_CAMERA_AMOUNT * ease
+      ctx.camera.position.y = startCamY + liftCamAmount * ease
       // Nâng lookAt lên
-      const newLookY = startLookY + LIFT_LOOK_AMOUNT * ease
+      const newLookY = startLookY + liftLookAmount * ease
       ctx.config.lookY = newLookY
       ctx.camera.lookAt(0, newLookY, 0)
 
       // Nâng selected package lên + đưa lại gần camera
       if (selectedMesh) {
-        selectedMesh.userData.liftExtraY = LIFT_AMOUNT * ease
+        selectedMesh.userData.liftExtraY = liftAmount * ease
         selectedMesh.userData.liftExtraZ = LIFT_Z_AMOUNT * ease
       }
 
