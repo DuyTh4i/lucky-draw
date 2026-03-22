@@ -34,8 +34,9 @@ export function usePackageSelection (ctx) {
 
     // Trên điện thoại (màn dọc) cần nâng cao hơn
     const isMobile = window.innerWidth < 768
-    const mobileScale = isMobile ? 1.1 : 1
+    const mobileScale = isMobile ? 1.2 : 1
     const liftAmount = LIFT_AMOUNT * mobileScale
+    const liftZAmount = LIFT_Z_AMOUNT * mobileScale + mobileScale
     const liftCamAmount = LIFT_CAMERA_AMOUNT * mobileScale
     const liftLookAmount = LIFT_LOOK_AMOUNT * mobileScale
 
@@ -63,7 +64,7 @@ export function usePackageSelection (ctx) {
       // Nâng selected package lên + đưa lại gần camera
       if (selectedMesh) {
         selectedMesh.userData.liftExtraY = liftAmount * ease
-        selectedMesh.userData.liftExtraZ = LIFT_Z_AMOUNT * ease
+        selectedMesh.userData.liftExtraZ = liftZAmount * ease
       }
 
       if (t < 1) {

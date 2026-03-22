@@ -13,7 +13,7 @@ export function useMainSceneContext () {
     packY: 0.1,
     bobAmplitude: 0.03,
     bobSpeed: 4,
-    dragSensitivity: 0.0045,
+    dragSensitivity: 0.0037,
     camX: 0,
     camY: 0.4,
     camZ: 8,
