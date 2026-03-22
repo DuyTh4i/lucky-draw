@@ -41,8 +41,8 @@ export function useCarousel (ctx) {
 
       materialCache[colorHex] = [
         sideMat, sideMat, sideMat, sideMat,
-        new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(fc), roughness: 0.3 }),
-        new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(bc), roughness: 0.3 }),
+        new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(fc), roughness: 0.5 }),
+        new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(bc), roughness: 0.5 }),
       ]
     }
 

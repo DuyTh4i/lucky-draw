@@ -5,8 +5,8 @@ import { Reflector } from 'three/addons/objects/Reflector.js'
 export function useWebGL (ctx, settingsStore) {
   function initWebGL () {
     const canvas = ctx.canvasRef.value
-    const w = canvas.clientWidth
-    const h = canvas.clientHeight
+    const w = window.innerWidth
+    const h = window.innerHeight
 
     ctx.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
     // Giới hạn pixelRatio ở mức 2 (Màn hình 3x 4x sẽ không phải vẽ quá nhiều ngốn GPU)
@@ -59,18 +59,18 @@ export function useWebGL (ctx, settingsStore) {
   }
 
   function buildLights () {
-    ctx.scene.add(new THREE.AmbientLight(0xff_ff_ff, 0.7))
-    const dir = new THREE.DirectionalLight(0xff_ff_ff, 0.8)
+    ctx.scene.add(new THREE.AmbientLight(0xff_ff_ff, 1))
+    const dir = new THREE.DirectionalLight(0xff_ff_ff, 1)
     dir.position.set(0, 10, 0)
     ctx.scene.add(dir)
 
-    const rim = new THREE.PointLight(0xaa_44_ff, 1.4, 22)
-    rim.position.set(-5, 4, -5)
-    ctx.scene.add(rim)
+    // const rim = new THREE.PointLight(0xaa_44_ff, 1.4, 22)
+    // rim.position.set(-5, 4, -5)
+    // ctx.scene.add(rim)
 
-    const fill = new THREE.PointLight(0x44_cc_ff, 0.9, 22)
-    fill.position.set(5, 2, 5)
-    ctx.scene.add(fill)
+    // const fill = new THREE.PointLight(0x44_cc_ff, 0.9, 22)
+    // fill.position.set(5, 2, 5)
+    // ctx.scene.add(fill)
   }
 
   ctx.updateCamera = function () {
@@ -91,8 +91,8 @@ export function useWebGL (ctx, settingsStore) {
     if (!ctx.canvasRef.value || !ctx.camera || !ctx.renderer) {
       return
     }
-    const w = ctx.canvasRef.value.clientWidth
-    const h = ctx.canvasRef.value.clientHeight
+    const w = window.innerWidth
+    const h = window.innerHeight
     ctx.camera.aspect = w / h
     ctx.camera.updateProjectionMatrix()
     ctx.renderer.setSize(w, h, false)
