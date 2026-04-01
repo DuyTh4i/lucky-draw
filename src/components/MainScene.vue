@@ -16,6 +16,7 @@
   import { useCarousel } from './composables/useCarousel'
   import { useInteraction } from './composables/useInteraction'
   import { useMainSceneContext } from './composables/useMainSceneContext'
+  import { usePackageOpening } from './composables/usePackageOpening'
   import { usePackageSelection } from './composables/usePackageSelection'
   import { useWebGL } from './composables/useWebGL'
 
@@ -30,6 +31,7 @@
   const { buildCarousel } = useCarousel(ctx)
   const { bindEvents, unbindEvents } = useInteraction(ctx)
   usePackageSelection(ctx)
+  usePackageOpening(ctx)
 
   onMounted(() => {
     initWebGL()

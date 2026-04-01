@@ -16,7 +16,7 @@ export function usePackageSelection (ctx) {
   const LIFT_AMOUNT = 6.4 // Selected package nâng lên bao nhiêu đơn vị
   const LIFT_CAMERA_AMOUNT = 6.8 // Camera nâng lên bao nhiêu
   const LIFT_LOOK_AMOUNT = 6.8 // Camera lookAt nâng lên bao nhiêu
-  const LIFT_Z_AMOUNT = 0.5 // Đưa package lại gần camera bao nhiêu đơn vị
+  const LIFT_Z_AMOUNT = 0 // Đưa package lại gần camera bao nhiêu đơn vị
   const LIFT_DURATION = 500
 
   // Lưu vị trí gốc
@@ -36,7 +36,7 @@ export function usePackageSelection (ctx) {
     const isMobile = window.innerWidth < 768
     const mobileScale = isMobile ? 1.2 : 1
     const liftAmount = LIFT_AMOUNT * mobileScale
-    const liftZAmount = LIFT_Z_AMOUNT * mobileScale + mobileScale
+    const liftZAmount = LIFT_Z_AMOUNT * mobileScale + isMobile ? mobileScale : 0
     const liftCamAmount = LIFT_CAMERA_AMOUNT * mobileScale
     const liftLookAmount = LIFT_LOOK_AMOUNT * mobileScale
 
@@ -72,6 +72,7 @@ export function usePackageSelection (ctx) {
       } else {
         isLifting = false
         ctx.isPackageSelected = true
+        if (ctx.showTearHint) ctx.showTearHint()
       }
     }
 
@@ -83,6 +84,7 @@ export function usePackageSelection (ctx) {
    */
   function lowerSelectedPackage () {
     if (isLifting || !ctx.isPackageSelected) return
+    if (ctx.hideTearHint) ctx.hideTearHint()
 
     isLifting = true
 

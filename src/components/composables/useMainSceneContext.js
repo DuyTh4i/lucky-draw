@@ -37,6 +37,15 @@ export function useMainSceneContext () {
     isSpinningPack: false,
     hasDragged: false,
     isPackageSelected: false,
+    // Package opening states
+    isPackageOpening: false,
+    isPackageOpened: false,
+    isTearing: false,
+    tearTopMesh: null,
+    tearBottomMesh: null,
+    prizeCardMesh: null,
+    glowLight: null,
+    glowSprite: null,
     // Mats
     fadeMat: null,
     nearFadeMat: null,
@@ -53,6 +62,13 @@ export function useMainSceneContext () {
     liftSelectedPackage: () => {},
     lowerSelectedPackage: () => {},
     isLiftingOrSelected: () => false,
+    openPackage: () => {},
+    resetPackageOpening: () => {},
+    startTearing: () => {},
+    updateTearing: () => 0,
+    cancelTearing: () => {},
+    showTearHint: () => {},
+    hideTearHint: () => {},
   }
 
   return ctx
