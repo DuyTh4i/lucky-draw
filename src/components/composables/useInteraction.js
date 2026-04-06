@@ -128,44 +128,12 @@ export function useInteraction (ctx) {
     return hits.length > 0
   }
 
-  /** Helper: xử lý move khi package đã selected (dùng chung cho mouse + touch) */
-  function handleSelectedMove (clientX, clientY) {
-    if (!ctx.isDragging) return
-    if (dragDirection === 'none') {
-      const dx = Math.abs(clientX - dragStartX)
-      const dy = Math.abs(clientY - dragStartY)
-      if (dx < DRAG_DEAD_ZONE && dy < DRAG_DEAD_ZONE) return
-      dragDirection = dx >= dy ? 'horizontal' : 'vertical'
-    }
-    if (dragDirection === 'horizontal') {
-      if (!ctx.isTearing && ctx.startTearing) ctx.startTearing(dragStartX)
-      if (ctx.updateTearing) {
-        const progress = ctx.updateTearing(clientX)
-        if (progress >= 1) {
-          ctx.isDragging = false
-          ctx.openPackage()
-        }
-      }
-    }
-  }
-
   function onMouseDown (event) {
     if (ctx.isSnapping) return
-    // Block mọi interaction khi đang opening hoặc đã opened
-    if (ctx.isPackageOpening) return
-    if (ctx.isPackageOpened) {
-      // Khi đã opened: cho phép click/drag để reset
-      ctx.isDragging = true
-      ctx.hasDragged = false
-      dragStartX = event.clientX
-      dragStartY = event.clientY
-      dragDirection = 'none'
-      return
-    }
-    // Nếu đang lift hoặc đã selected → cho swipe ngang để xé hoặc dọc xuống để hạ
+
+    // Nếu đang lift hoặc đã selected → cho drag dọc xuống để hạ
     if (ctx.isLiftingOrSelected && ctx.isLiftingOrSelected()) {
-      if (!ctx.isPackageSelected) return // đang lift animation, block hết
-      // Đã selected: cho phép drag để xé (ngang) hoặc hạ (dọc xuống)
+      if (!ctx.isPackageSelected) return
       ctx.isDragging = true
       ctx.hasDragged = false
       dragStartX = event.clientX
@@ -203,12 +171,21 @@ export function useInteraction (ctx) {
   }
 
   function onMouseMove (event) {
-    // Block khi đang opening
-    if (ctx.isPackageOpening) return
-    if (ctx.isPackageOpened) return
-    // Khi đã selected: cho swipe ngang để xé, dọc xuống để hạ
+    // Khi đã selected → vuốt ngang = tear, vuốt dọc xuống = lower
     if (ctx.isPackageSelected) {
-      handleSelectedMove(event.clientX, event.clientY)
+      if (!ctx.isDragging) return
+      if (dragDirection === 'none') {
+        const dx = Math.abs(event.clientX - dragStartX)
+        const dy = Math.abs(event.clientY - dragStartY)
+        if (dx < 10 && dy < 10) return
+        dragDirection = dx >= dy ? 'horizontal' : 'vertical'
+        if (dragDirection === 'horizontal') {
+          ctx.startTearing(dragStartX)
+        }
+      }
+      if (dragDirection === 'horizontal' && ctx.isTearing) {
+        ctx.updateTearing(event.clientX)
+      }
       return
     }
 
@@ -237,10 +214,8 @@ export function useInteraction (ctx) {
     }
 
     if (!ctx.isDragging || ctx.isSnapping) return
-    // Chỉ 1 package thì không cho kéo đảo vị trí
     if (ctx.config.packCount <= 1) return
 
-    // Gesture disambiguation: chờ vượt ngưỡng rồi phân biệt ngang/dọc
     if (dragDirection === 'none') {
       const dx = Math.abs(event.clientX - dragStartX)
       const dy = Math.abs(event.clientY - dragStartY)
@@ -249,10 +224,8 @@ export function useInteraction (ctx) {
       previousMouseX = event.clientX
     }
 
-    // Vuốt dọc → trigger lift/lower package
     if (dragDirection === 'vertical') {
       const dy = event.clientY - dragStartY
-      // Vuốt lên (dy < 0) đủ xa → lift
       if (dy < -80 && !ctx.isPackageSelected && ctx.liftSelectedPackage) {
         ctx.isDragging = false
         ctx.liftSelectedPackage()
@@ -263,7 +236,6 @@ export function useInteraction (ctx) {
     const deltaX = event.clientX - previousMouseX
     if (Math.abs(deltaX) > 2) ctx.hasDragged = true
 
-    // Tự động kích độ nhạy vuốt lên 2.5 lần trên màn hình điện thoại
     const isMobile = window.innerWidth < 768
     const sens = isMobile ? ctx.config.dragSensitivity * 2.5 : ctx.config.dragSensitivity
 
@@ -278,39 +250,24 @@ export function useInteraction (ctx) {
     }
     hitOnPack = false
 
-    // Nếu đã opened → reset khi click
-    if (ctx.isPackageOpened && ctx.isDragging) {
-      ctx.isDragging = false
-      if (!ctx.hasDragged && ctx.resetPackageOpening) {
-        ctx.resetPackageOpening()
-        // Sau khi reset, hạ package luôn
-        if (ctx.lowerSelectedPackage) ctx.lowerSelectedPackage()
-      }
-      return
-    }
-
-    // Block khi đang opening
-    if (ctx.isPackageOpening) {
-      ctx.isDragging = false
-      return
-    }
-
-    // Nếu đã selected và vuốt dọc xuống → lower
-    if (ctx.isPackageSelected && ctx.isDragging && dragDirection === 'vertical') {
-      const dy = event.clientY - dragStartY
-      if (dy > 80 && ctx.lowerSelectedPackage) {
+    // Nếu đã selected → xử lý cả ngang (tear) và dọc (lower)
+    if (ctx.isPackageSelected && ctx.isDragging) {
+      if (dragDirection === 'horizontal' && ctx.isTearing) {
+        ctx.cancelTearing()
         ctx.isDragging = false
-        ctx.lowerSelectedPackage()
+        dragDirection = 'none'
         return
       }
+      if (dragDirection === 'vertical') {
+        const dy = event.clientY - dragStartY
+        if (dy > 80 && ctx.lowerSelectedPackage) {
+          ctx.isDragging = false
+          ctx.lowerSelectedPackage()
+          return
+        }
+      }
       ctx.isDragging = false
-      return
-    }
-
-    // Nếu đang xé dở (ngang) → cancel
-    if (ctx.isPackageSelected && ctx.isDragging && dragDirection === 'horizontal') {
-      ctx.isDragging = false
-      if (ctx.cancelTearing) ctx.cancelTearing()
+      dragDirection = 'none'
       return
     }
 
@@ -325,10 +282,7 @@ export function useInteraction (ctx) {
     if (!ctx.isDragging) return
     ctx.isDragging = false
     document.body.style.cursor = 'default'
-    // Không snap carousel khi đang lift
-    if (!ctx.isLiftingOrSelected || !ctx.isLiftingOrSelected()) {
-      snapToNearest()
-    }
+    snapToNearest()
     setTimeout(() => {
       ctx.hasDragged = false
     }, 100)
@@ -339,21 +293,9 @@ export function useInteraction (ctx) {
 
     const touch = event.touches[0]
 
-    // Block khi đang opening
-    if (ctx.isPackageOpening) return
-    if (ctx.isPackageOpened) {
-      ctx.isDragging = true
-      ctx.hasDragged = false
-      dragStartX = touch.clientX
-      dragStartY = touch.clientY
-      dragDirection = 'none'
-      return
-    }
-
-    // Nếu đang lift hoặc đã selected
+    // Nếu đang lift hoặc đã selected → cho drag dọc xuống để hạ
     if (ctx.isLiftingOrSelected && ctx.isLiftingOrSelected()) {
-      if (!ctx.isPackageSelected) return // đang lift animation
-      // Đã selected: cho phép drag để xé (ngang) hoặc hạ (dọc)
+      if (!ctx.isPackageSelected) return
       ctx.isDragging = true
       ctx.hasDragged = false
       dragStartX = touch.clientX
@@ -390,15 +332,6 @@ export function useInteraction (ctx) {
   }
 
   function onTouchMove (event) {
-    // Block khi đang opening
-    if (ctx.isPackageOpening) return
-    if (ctx.isPackageOpened) return
-    // Khi đã selected: cho swipe ngang để xé, dọc để hạ
-    if (ctx.isPackageSelected) {
-      handleSelectedMove(event.touches[0].clientX, event.touches[0].clientY)
-      return
-    }
-
     if (touchHoldTimer && touchHitOnPack) {
       const dx = Math.abs(event.touches[0].clientX - touchPendingX)
       if (dx > 4) {
@@ -406,6 +339,25 @@ export function useInteraction (ctx) {
         touchHoldTimer = null
         touchHitOnPack = false
       }
+    }
+
+    // Khi đã selected → vuốt ngang = tear, vuốt dọc = lower
+    if (ctx.isPackageSelected) {
+      if (!ctx.isDragging) return
+      if (dragDirection === 'none') {
+        const dx = Math.abs(event.touches[0].clientX - dragStartX)
+        const dy = Math.abs(event.touches[0].clientY - dragStartY)
+        if (dx < 10 && dy < 10) return
+        dragDirection = dx >= dy ? 'horizontal' : 'vertical'
+        if (dragDirection === 'horizontal') {
+          ctx.startTearing(dragStartX)
+        }
+      }
+      if (dragDirection === 'horizontal' && ctx.isTearing) {
+        event.preventDefault()
+        ctx.updateTearing(event.touches[0].clientX)
+      }
+      return
     }
 
     if (ctx.isSpinningPack && ctx.selectedPack.value !== null) {
@@ -425,10 +377,8 @@ export function useInteraction (ctx) {
     }
 
     if (!ctx.isDragging || ctx.isSnapping) return
-    // Chỉ 1 package thì không cho vuốt đảo vị trí
     if (ctx.config.packCount <= 1) return
 
-    // Gesture disambiguation: chờ vượt ngưỡng rồi phân biệt ngang/dọc
     if (dragDirection === 'none') {
       const dx = Math.abs(event.touches[0].clientX - dragStartX)
       const dy = Math.abs(event.touches[0].clientY - dragStartY)
@@ -437,10 +387,8 @@ export function useInteraction (ctx) {
       previousMouseX = event.touches[0].clientX
     }
 
-    // Vuốt dọc → trigger lift/lower package
     if (dragDirection === 'vertical') {
       const dy = event.touches[0].clientY - dragStartY
-      // Vuốt lên (dy < 0) đủ xa → lift
       if (dy < -80 && !ctx.isPackageSelected && ctx.liftSelectedPackage) {
         ctx.isDragging = false
         ctx.liftSelectedPackage()
@@ -452,7 +400,6 @@ export function useInteraction (ctx) {
     const deltaX = event.touches[0].clientX - previousMouseX
     if (Math.abs(deltaX) > 2) ctx.hasDragged = true
 
-    // Tự động kích độ nhạy vuốt lên 2.5 lần trên thiết bị di động
     const isMobile = window.innerWidth < 768
     const sens = isMobile ? ctx.config.dragSensitivity * 2.5 : ctx.config.dragSensitivity
 
@@ -467,38 +414,24 @@ export function useInteraction (ctx) {
     }
     touchHitOnPack = false
 
-    // Nếu đã opened → reset khi tap
-    if (ctx.isPackageOpened && ctx.isDragging) {
-      ctx.isDragging = false
-      if (!ctx.hasDragged && ctx.resetPackageOpening) {
-        ctx.resetPackageOpening()
-        if (ctx.lowerSelectedPackage) ctx.lowerSelectedPackage()
-      }
-      return
-    }
-
-    // Block khi đang opening
-    if (ctx.isPackageOpening) {
-      ctx.isDragging = false
-      return
-    }
-
-    // Nếu đã selected và vuốt dọc xuống → lower
-    if (ctx.isPackageSelected && ctx.isDragging && dragDirection === 'vertical') {
-      const dy = (event.changedTouches[0]?.clientY || 0) - dragStartY
-      if (dy > 80 && ctx.lowerSelectedPackage) {
+    // Nếu đã selected → xử lý cả ngang (tear) và dọc (lower)
+    if (ctx.isPackageSelected && ctx.isDragging) {
+      if (dragDirection === 'horizontal' && ctx.isTearing) {
+        ctx.cancelTearing()
         ctx.isDragging = false
-        ctx.lowerSelectedPackage()
+        dragDirection = 'none'
         return
       }
+      if (dragDirection === 'vertical') {
+        const dy = (event.changedTouches[0]?.clientY || 0) - dragStartY
+        if (dy > 80 && ctx.lowerSelectedPackage) {
+          ctx.isDragging = false
+          ctx.lowerSelectedPackage()
+          return
+        }
+      }
       ctx.isDragging = false
-      return
-    }
-
-    // Nếu đang xé dở (ngang) → cancel
-    if (ctx.isPackageSelected && ctx.isDragging && dragDirection === 'horizontal') {
-      ctx.isDragging = false
-      if (ctx.cancelTearing) ctx.cancelTearing()
+      dragDirection = 'none'
       return
     }
 
@@ -510,10 +443,7 @@ export function useInteraction (ctx) {
       return
     }
     ctx.isDragging = false
-    // Không snap carousel khi đang lift
-    if (!ctx.isLiftingOrSelected || !ctx.isLiftingOrSelected()) {
-      snapToNearest()
-    }
+    snapToNearest()
     setTimeout(() => {
       ctx.hasDragged = false
     }, 100)
