@@ -16,5 +16,6 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SettingsDrawer: typeof import('./src/components/SettingsDrawer.vue')['default']
+    SwipeTearCap: typeof import('./src/components/SwipeTearCap.vue')['default']
   }
 }

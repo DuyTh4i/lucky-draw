@@ -132,7 +132,7 @@
                 >
                   <path
                     d="M1 1L5 5L9 1"
-                    stroke="#dc143c"
+                    stroke="currentColor"
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="1.5"
@@ -252,7 +252,7 @@
   const translations = {
     vi: {
       title: 'CÀI ĐẶT',
-      graphicsQuality: 'CHẤT_LƯỢNG_ĐỒ_HỌA',
+      graphicsQuality: 'ĐỒ_HỌA',
       low: 'Thấp',
       medium: 'Vừa',
       high: 'Cao',
@@ -455,15 +455,15 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-right: 1px solid rgba(220, 20, 60, 0.2);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
   font-family: 'Montserrat', monospace;
   font-size: 0.8rem;
 }
 
 .accent-top {
-  height: 2px;
+  height: 1px;
   flex-shrink: 0;
-  background: linear-gradient(90deg, #dc143c, #ff4466, #dc143c);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .drawer-hdr {
@@ -477,7 +477,7 @@
   font-size: 0.95rem;
   font-weight: bold;
   letter-spacing: 3px;
-  color: #dc143c;
+  color: #fff;
 }
 .hdr-sub {
   font-size: 0.55rem;
@@ -511,9 +511,9 @@
   white-space: nowrap;
 }
 .toggle-pill:hover {
-  border-color: #dc143c;
+  border-color: rgba(255, 255, 255, 0.4);
   color: #fff;
-  background: rgba(220, 20, 60, 0.1);
+  background: rgba(255, 255, 255, 0.06);
 }
 .lang-pill {
   flex: 0.8;
@@ -529,8 +529,8 @@
   transition: all 0.2s;
 }
 .close-x:hover {
-  border-color: #dc143c;
-  color: #dc143c;
+  border-color: #fff;
+  color: #fff;
 }
 
 .drawer-scroll {
@@ -548,9 +548,8 @@
 .sec-label {
   font-size: 0.65rem;
   letter-spacing: 2px;
-  color: #dc143c;
+  color: rgba(255, 255, 255, 0.45);
   margin-bottom: 8px;
-  opacity: 0.8;
 }
 
 .custom-select {
@@ -576,7 +575,7 @@
   min-height: 28px;
 }
 .select-selected:hover {
-  border-color: #dc143c;
+  border-color: rgba(255, 255, 255, 0.3);
 }
 .select-items {
   position: absolute;
@@ -584,7 +583,7 @@
   left: 0;
   right: 0;
   background-color: #1a1a1a;
-  border: 1px solid #dc143c;
+  border: 1px solid #333;
   border-radius: 4px;
   margin-top: 4px;
   overflow: hidden;
@@ -600,13 +599,13 @@
   text-transform: uppercase;
 }
 .select-items div:hover {
-  background-color: #dc143c;
+  background-color: #333;
   color: #fff;
 }
 .select-items div.active {
-  color: #dc143c;
+  color: #fff;
   font-weight: bold;
-  background-color: rgba(220, 20, 60, 0.1);
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .divider {
@@ -621,7 +620,7 @@
   border: 1px solid #333;
   border-radius: 4px;
   background: #1a1a1a;
-  color: #dc143c;
+  color: #aaa;
   cursor: pointer;
   font-family: inherit;
   font-size: 0.7rem;
@@ -630,8 +629,9 @@
   margin-bottom: 18px;
 }
 .btn-reset:hover {
-  border-color: #dc143c;
-  background: rgba(220, 20, 60, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 /* ═══ PRIZE TIERS ═══ */
@@ -717,7 +717,7 @@
   margin: 0;
 }
 .tier-qty-input:focus {
-  border-color: #dc143c;
+  border-color: rgba(255, 255, 255, 0.3);
   background: #0e0e0e;
 }
 
@@ -737,7 +737,7 @@
   padding: 0;
 }
 .btn-tiny:hover:not(:disabled) {
-  border-color: #dc143c;
+  border-color: rgba(255, 255, 255, 0.35);
   color: #fff;
 }
 .btn-tiny:disabled {
@@ -787,8 +787,8 @@
   text-transform: uppercase;
 }
 .btn-upload:hover {
-  border-color: #dc143c;
-  color: #dc143c;
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #fff;
 }
 
 .btn-tex-remove {
@@ -802,8 +802,8 @@
   transition: all 0.15s;
 }
 .btn-tex-remove:hover {
-  border-color: #dc143c;
-  color: #dc143c;
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #fff;
 }
 
 .future { opacity: 0.4; }
@@ -815,139 +815,145 @@
 
 /* ═══ LIGHT THEME ═══ */
 .toggle-btn.light {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: rgba(0, 0, 0, 0.12);
-  color: rgba(0, 0, 0, 0.45);
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.15);
+  color: rgba(0, 0, 0, 0.5);
 }
 .toggle-btn.light:hover {
-  border-color: #dc143c;
-  color: #dc143c;
-  box-shadow: 0 0 10px rgba(220, 20, 60, 0.1);
+  border-color: #000;
+  color: #000;
+  box-shadow: none;
 }
 
 .drawer.light {
-  background: #f8f8fa;
-  color: #222;
-  border-right-color: rgba(220, 20, 60, 0.15);
+  background: #fafafa;
+  color: #111;
+  border-right-color: rgba(0, 0, 0, 0.08);
 }
 .drawer.light .accent-top {
-  opacity: 0.5;
+  background: rgba(0, 0, 0, 0.1);
 }
 .drawer.light .drawer-hdr {
-  border-bottom-color: #e0e0e0;
+  border-bottom-color: #e8e8e8;
+}
+.drawer.light .hdr-title {
+  color: #111;
 }
 .drawer.light .hdr-sub {
-  color: #aaa;
+  color: #bbb;
 }
 .drawer.light .close-x {
   border-color: #ddd;
   color: #999;
 }
 .drawer.light .close-x:hover {
-  border-color: #dc143c;
-  color: #dc143c;
+  border-color: #000;
+  color: #000;
 }
 .drawer.light .toggle-pill {
   background: #fff;
-  border-color: #ddd;
+  border-color: #e0e0e0;
   color: #555;
 }
 .drawer.light .toggle-pill:hover {
-  border-color: #dc143c;
-  color: #dc143c;
+  border-color: #000;
+  color: #000;
+  background: rgba(0, 0, 0, 0.04);
 }
 .drawer.light .sec-label {
-  color: #dc143c;
-  opacity: 0.7;
+  color: rgba(0, 0, 0, 0.4);
 }
 .drawer.light .divider {
-  background: #e0e0e0;
+  background: #ebebeb;
 }
 .drawer.light .tier-card {
   background: #fff;
-  border-color: #eee;
+  border-color: #ebebeb;
 }
 .drawer.light .tier-card:hover {
-  border-color: #ddd;
+  border-color: #ccc;
 }
 .drawer.light .tier-label {
-  color: #333;
+  color: #222;
 }
 .drawer.light .tier-qty-input {
   color: #111;
 }
 .drawer.light .tier-qty-input:focus {
   background: #fff;
-  border-color: #dc143c;
+  border-color: #000;
 }
 .drawer.light .tier-total {
-  color: #999;
+  color: #aaa;
 }
 .drawer.light .tier-texture {
-  border-top-color: #eee;
+  border-top-color: #ebebeb;
 }
 .drawer.light .tex-preview {
-  border-color: #ddd;
-  background: #f0f0f0;
+  border-color: #e0e0e0;
+  background: #f5f5f5;
 }
 .drawer.light .btn-tiny {
   background: #fff;
-  border-color: #ddd;
+  border-color: #e0e0e0;
   color: #888;
 }
 .drawer.light .btn-tiny:hover:not(:disabled) {
-  border-color: #dc143c;
-  color: #dc143c;
+  border-color: #000;
+  color: #000;
 }
 .drawer.light .btn-upload {
-  border-color: #ddd;
+  border-color: #e0e0e0;
   color: #888;
 }
 .drawer.light .btn-upload:hover {
-  border-color: #dc143c;
-  color: #dc143c;
+  border-color: #000;
+  color: #000;
 }
 .drawer.light .btn-tex-remove {
-  border-color: #ddd;
+  border-color: #e0e0e0;
   color: #ccc;
 }
 .drawer.light .btn-tex-remove:hover {
-  border-color: #dc143c;
-  color: #dc143c;
+  border-color: #000;
+  color: #000;
 }
 .drawer.light .btn-reset {
   background: #fff;
-  border-color: #ddd;
+  border-color: #e0e0e0;
+  color: #888;
 }
 .drawer.light .btn-reset:hover {
-  border-color: #dc143c;
-  background: rgba(220, 20, 60, 0.04);
+  border-color: #000;
+  color: #000;
+  background: rgba(0, 0, 0, 0.03);
 }
 .drawer.light .future p {
-  color: #aaa;
+  color: #bbb;
 }
 .drawer.light .drawer-scroll::-webkit-scrollbar-thumb {
   background: #ddd;
 }
 .drawer.light .select-selected {
   background: #fff;
-  border-color: #ddd;
-  color: #333;
+  border-color: #e0e0e0;
+  color: #222;
 }
 .drawer.light .select-items {
   background: #fff;
-  border-color: #dc143c;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-color: #e0e0e0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 .drawer.light .select-items div {
-  color: #666;
+  color: #555;
 }
 .drawer.light .select-items div:hover {
-  background: #dc143c;
-  color: #fff;
+  background: #f0f0f0;
+  color: #000;
 }
 .drawer.light .select-items div.active {
-  background: rgba(220, 20, 60, 0.05);
-  color: #dc143c;
+  background: rgba(0, 0, 0, 0.06);
+  color: #000;
+  font-weight: bold;
 }
 </style>
