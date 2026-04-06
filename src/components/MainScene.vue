@@ -13,12 +13,12 @@
 <script setup>
   import { onMounted, onUnmounted } from 'vue'
   import { useSettingsStore } from '@/stores/settingsStore'
-  import { useCarousel } from './composables/useCarousel'
-  import { useInteraction } from './composables/useInteraction'
-  import { useMainSceneContext } from './composables/useMainSceneContext'
-  import { usePackageOpening } from './composables/usePackageOpening'
-  import { usePackageSelection } from './composables/usePackageSelection'
-  import { useWebGL } from './composables/useWebGL'
+  import { usePackageOpening } from './composables/package/usePackageOpening'
+  import { usePackageSelection } from './composables/package/usePackageSelection'
+  import { useCarousel } from './composables/scene/useCarousel'
+  import { useInteraction } from './composables/scene/useInteraction'
+  import { useMainSceneContext } from './composables/scene/useMainSceneContext'
+  import { useWebGL } from './composables/scene/useWebGL'
 
   const settingsStore = useSettingsStore()
 
